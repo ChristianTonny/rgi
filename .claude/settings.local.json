@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(if [ -f \"search-10-01-25-115944.csv\" ])",
+      "Bash(then cp \"search-10-01-25-115944.csv\" nisr-catalog.csv)",
+      "Bash(else echo \"Catalog file not accessible\")",
+      "Bash(fi)",
+      "Bash(node:*)",
+      "Bash(curl -X POST http://localhost:3001/api/auth/login -H \"Content-Type: application/json\" -d \"{\"\"email\"\":\"\"minister@gov.rw\"\",\"\"password\"\":\"\"password123\"\"}\")",
+      "Bash(python:*)",
+      "Bash(netstat:*)",
+      "Bash(ss:*)",
+      "Bash(curl:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,0 +1,73 @@
+﻿id,surveyid,titl,nation,authenty,data_coll_start,data_coll_end,created,changed
+90,RWA-NISR-RAHS-2017-V0.1,"Agricultural Household Survey 2017",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",2017,2017,Jan-11-21,Jan-11-21
+101,RWA-NISR-RAHS-2020-V0.1,"Agricultural Household Survey 2020",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",2020,2020,Apr-19-22,Apr-19-22
+26,RWA-NISR-CFSVA-206-v01,"Comprehensive Food Security and Vulnerability Analysis (CFSVA)",Rwanda,"[""National Institute of Statistics Rwanda - Government of Rwanda""]",2006,2006,Aug-03-12,Aug-03-12
+70,RWA-NISR-CFSVA-2015-v01,"Comprehensive Food Security and Vulnerability Analysis 2015",RWANDA,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",2015,2015,Jun-15-16,Jun-15-16
+91,RWA-NISR-CFSVA-2018-v01,"Comprehensive Food Security and Vulnerability Analysis 2018",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",2018,2018,Jan-11-21,Jan-11-21
+106,RWA-NISR-CFSVA-2021-v01,"Comprehensive Food Security and Vulnerability Analysis 2021",Rwanda,"National Institute of Statistics of Rwanda (NISR) - Ministry of Finance and Economic Planning (MINECOFIN)",2021,2021,Sep-01-23,Sep-04-23
+122,RWA-NISR-CFSVA-2024-v01,"Comprehensive Food Security and Vulnerability Analysis 2024",RWANDA,"National Institute of Statistics of Rwanda(NISR) - Ministry of Finance and Economic Planning(MINECOFIN)",0,0,Aug-08-25,Aug-08-25
+8,RWA-NISR-CFSVANS-2009-v01,"Comprehensive Food Security and Vulnerability Analysis and Nutrition Survey 2009",RWANDA,"[""National Institute of Statistics of Rwanda - Ministry of Economics Planification and Finance""]",2009,2009,Aug-01-12,Aug-01-12
+69,RWA-NISR-CFSVANS-2012-v1,"Comprehensive Food Security and Vulnerability Analysis and Nutrition Survey 2012",RWANDA,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",2012,2012,May-25-16,May-25-16
+11,RWA-NISR-DHS-2000-v1.0,"Demographic and Health Survey 2000",Rwanda,"[""National Institute of Statistic of Rwanda - MINECOFIN""]",2000,2000,Aug-02-12,Aug-02-12
+68,rwa-nisr-rdhs5-2014-2015-v01,"Demographic and Health Survey 2014-2015",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",2014,2015,May-24-16,May-31-16
+14,RWA-NISR-DHS-2005-v01,"Demographic Health Survey 2005",RWANDA,"[""National Institute of Statistics of Rwanda - MINECOFIN""]",2005,2005,Aug-02-12,Aug-02-12
+4,RWA-NISR-DHS-2010-v01,"Demographic Health Survey 2010",RWANDA,"[""National Institute of Statistics of Rwanda NISR - MINECOFIN""]",2010,2011,Aug-01-12,Feb-27-13
+25,RWA-NISR-MICS-2000-v1.0,"ENQUETE A INDICATEURS MULTIPLES (MICS2000)",Rwanda,"[""Direction de la Statistique - Minist\u00e8re des Finances et de la Planification Economique""]",2000,2000,Aug-03-12,Aug-03-12
+6,RWA-NISR-DHS-1992-v01,"Enquête Démographique et de Santé 1992",RWANDA,"[""Office National de la Population - MINIPLA""]",1992,1992,Aug-01-12,Aug-01-12
+40,RWA_2006_ES_v01_M_WB,"Enterprise Survey 2006",Rwanda,"[""World Bank""]",2006,2006,Jul-20-13,Aug-12-14
+41,RWA_2011_ES_v01_M_WB,"Enterprise Survey 2011",Rwanda,"[""World Bank""]",2011,2012,Jul-20-13,Aug-12-14
+120,RWA-NISR-FINSCOPE-2024-v01,"FinScope 2024, Financial Inclusion in Rwanda",Rwanda,"Access to Finance Rwanda",0,0,Jul-09-25,Jul-09-25
+9,RWA-NISR-CENSUS-2002-v01,"General Census of Population and Housing 2002",Rwanda,"[""National Census Service - Ministry of Finance and Economic Planning""]",2002,2002,Aug-01-12,Apr-13-16
+79,RWA-NISR-RHADPA-2016-V1.2,"Health Administrative Data Progress Assessment",Rwanda,"Ministry of Health(MoH) in collaboration with the National Institute of Statistics of Rwanda(NISR)",2015,2016,Jun-19-17,Jun-30-17
+75,RWA-NISR-EICV4-CS-2013-2014-V01,"Integrated Household Living Conditions Survey (EICV4), 2013-2014, Cross-Sectional Sample",Rwanda,"National Institute of Statistics Rwanda (NISR) - Ministry of Finance and Economic Planning",2013,2014,Jun-29-16,Jun-29-16
+73,RWA-NISR-DDI-EICV4-VUP-01,"Integrated Household Living Conditions Survey (EICV4), 2013-2014, VUP",Rwanda,"National Institute of Statistics Rwanda (NISR) - Ministry of Finance and Economic Planning",2013,2014,Jun-28-16,Jun-29-16
+82,RWA-NISR-EICV5-CS-2016-2017-V0.1,"Integrated Household Living Conditions Survey (EICV5), 2016-2017, Cross-Sectional Sample",Rwanda,"National Institute of Statistics Rwanda (NISR) - Ministry of Finance and Economic Planning",2016,2017,Dec-11-18,Dec-16-18
+85,RWA-NISR-EICV5-VUP-2016-2017-V01,"Integrated Household Living Conditions Survey (EICV5), 2016-2017, VUP",Rwanda,"National Institute of Statistics Rwanda (NISR) - Ministry of Finance and Economic Planning",2016,2017,Feb-04-19,Feb-04-19
+119,RWA-NISR-EICV7-2023-2024-v01,"Integrated Household Living Conditions Survey (EICV7), 2023-2024, Cross-Sectional Sample",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",0,0,May-30-25,May-30-25
+121,RWA-NISR-EICV7-VUP-2023-2024-V01,"Integrated Household Living Conditions Survey (EICV7), 2023-2024, VUP",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",0,0,Jul-18-25,Jul-18-25
+27,RWA-NISR-EICV-2001-v1.1,"Integrated Household Living Conditions Survey 2000-2001",Rwanda,"NISR (National Institute of Statistics, Rwanda) - Government of Rwanda",1999,2001,Aug-03-12,Jun-28-16
+39,RWA-NISR-EICV-2005-2006-V1.1,"Integrated Household Living Conditions Survey 2005-2006",Rwanda,"NISR (National Institute of Statistics, Rwanda) - Government of Rwanda",2005,2006,Jul-20-13,Jun-28-16
+36,RWA-NISR-EICV3-02,"Integrated Household Living Conditions Survey 2010-2011",Rwanda,"National Institute of Statistics of Rwanda (NISR) - Ministry of finance and economics planning (MINECOFIN)",2010,2011,Oct-19-12,Jun-28-16
+74,RWA-NISR-EICV4-PNL-01,"Integrated Household Living Conditions Survey, EICV3&4 Panel",Rwanda,"National Institute of Statistics Rwanda (NISR) - Ministry of Finance and Economic Planning",2013,2014,Jun-29-16,Jun-29-16
+43,RWA_2006_MS_v01_M_WB,"Micro-Enterprise Survey 2006",Rwanda,"[""World Bank""]",2006,2006,Jul-20-13,Aug-12-14
+42,RWA_2011_MS_v01_M_WB,"Micro-Enterprise Survey 2011",Rwanda,"[""World Bank""]",2011,2012,Jul-20-13,Aug-12-14
+46,RWA_1978_PHC_v01_M,"Recensement Général de la Population et de l'Habitat 1978",Rwanda,"[""Bureau National de Recensement""]",1978,1978,Jul-20-13,Aug-12-14
+44,RWA_1991_PHC_v01_M,"Recensement Général de la Population et de l'Habitat 1991",Rwanda,"[""Direction G\u00e9n\u00e9ral de la Statistique"","" Commission Nationale de Recensement"","" Service National de Recensement""]",1991,1991,Jul-20-13,Jul-20-13
+98,rwa-nisr-rdhs6-2019-2020-v01,"Rwanda - Demographic and Health Survey 2019-2020",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",2019,2020,Feb-10-22,Feb-10-22
+62,rwa-nisr-rec-2011-v1,"Rwanda Establishment Census 2011",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",2011,2011,May-21-15,Aug-18-15
+67,rwa-nisr-rec-2014-v1,"Rwanda Establishment Census 2014",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",2014,2014,Aug-18-15,Sep-18-15
+87,rwa-nisr-rec-2017-V0.1,"Rwanda Establishment Census 2017",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",2017,2018,Feb-14-19,Feb-14-19
+94,rwa-nisr-rec-2020-V0.1,"Rwanda Establishment Census 2020",Rwanda,"National Institute of Statistics of Rwanda - National Institute of Statistics of Rwanda",0,0,Nov-30-21,Nov-30-21
+112,rwa-nisr-rec-2023-V0.1,"Rwanda Establishment Census 2023",Rwanda,"National Institute of Statistics of Rwanda - National Institute of Statistics of Rwanda",0,0,Jul-01-24,Jul-01-24
+89,RWA-NISR-RFS-2020-v1,"Rwanda FinScope 2020, Financial Inclusion in Rwanda 2020",RWANDA,"Access to Finance Rwanda (AFR) - GoR",2020,2020,Jan-11-21,Jan-11-21
+57,RWA-NISR-FS-2012-v01,"Rwanda Finscope Survey 2012, Financial Inclusion in Rwanda 2008-2012",Rwanda,"Access to Finance Rwanda (AFR)",2012,2012,May-21-15,May-22-15
+71,RWA-NISR-RFS-2016-v01,"Rwanda FinScope Survey 2016, Financial Inclusion in Rwanda 2016",Rwanda,"Access to Finance Rwanda (AFR) - GoR",2015,2016,Jun-17-16,Jun-17-16
+13,RWA-NISR-RIDHS-2008-v1.0,"Rwanda Interim Demographic and Health Survey 2007-2008",Rwanda,"[""National Institute of Statistics of Rwanda (NISR) - Ministry of Finance and Economic Planning (Minecofin)""]",2007,2008,Aug-02-12,Aug-02-12
+81,RWA-NISR-RLFS-2017-v0.1,"Rwanda Labor Force Survey",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",2017,2017,Sep-27-18,Nov-17-19
+100,RWA-NISR-RLFS-2021-v0.1,"Rwanda Labour Force Survery 2021",Rwanda,"National Institute of Statistics of Rwanda (NISR) - Ministry of Finance and Economic Planning (MINECOFIN)",2021,2021,Mar-31-22,Mar-31-22
+104,RWA-NISR-RLFS-2022-v0.1,"Rwanda Labour Force Survery 2022",Rwanda,"National Institute of Statistics of Rwanda (NISR) - Ministry of Finance and Economic Planning (MINECOFIN)",2022,2022,Apr-03-23,Apr-03-23
+110,RWA-NISR-RLFS-2023-v0.1,"Rwanda Labour Force Survery 2023",Rwanda,"National Institute of Statistics of Rwanda (NISR) - Ministry of Finance and Economic Planning (MINECOFIN)",0,0,Mar-25-24,Mar-25-24
+114,RWA-NISR-RLFS-2024-v0.1,"Rwanda Labour Force Survery 2024",Rwanda,"National Institute of Statistics of Rwanda (NISR) - Ministry of Finance and Economic Planning (MINECOFIN)",0,0,Mar-30-25,Mar-30-25
+83,RWA-NISR-RLFS-2018-v0.1,"Rwanda Labour Force Survey",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",2018,2018,Feb-04-19,Nov-17-19
+92,RWA-NISR-RLFS-2019-v0.1,"Rwanda Labour Force survey 2019",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",2019,2019,Jan-11-21,Jan-11-21
+97,RWA-NISR-RLFS-2020-v0.1,"Rwanda Labour Force survey 2020",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",0,0,Dec-13-21,Dec-13-21
+21,RWA-NISR-RNCLS-2008-v01,"Rwanda National Child Labour Survey 2008",RWANDA,"[""National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning ""]",2008,2008,Aug-03-12,Aug-03-12
+48,rwa-nisr-rnms-2011-2012-v1,"Rwanda National Manpower Survey 2011-2012",Rwanda,"[""National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning""]",2011,2011,Feb-21-14,Feb-21-14
+65,RWA-NISR-RPHC-2012-v2,"Rwanda Population and Housing Census 2012",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",2012,2012,Jun-24-15,Aug-28-15
+109,RWA-NISR-RPHC-2022-v0.1,"Rwanda Population and Housing Census 2022",Rwanda,"National Institute of Statistics of Rwanda (NISR) - Ministry of Finance and Economic Planning (MINECOFIN)",0,0,Mar-11-24,Mar-11-24
+61,rwa-nisr-rpes-2012-v1,"Rwanda Post Enumeration Survey 2012",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",2012,2012,May-21-15,May-21-15
+93,RWA-NISR-SAS-2019-v0.1,"Rwanda Season Agriculture Survey 2019",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning ",2018,2019,Jan-11-21,Jan-11-21
+99,RWA-NISR-SAS-2020-v0.1,"Rwanda Season Agriculture Survey 2020",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning ",2019,2020,Feb-10-22,Feb-10-22
+102,RWA-NISR-SAS-2021-v0.1,"Rwanda Season Agriculture Survey 2021",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning ",0,0,Nov-28-22,Nov-29-22
+103,RWA-NISR-SAS-2022-v0.1,"Rwanda Season Agriculture Survey 2022",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning ",0,0,Feb-22-23,Feb-22-23
+111,RWA-NISR-SAS-2023-v0.1,"Rwanda Season Agriculture Survey 2023",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",0,0,Mar-28-24,Mar-28-24
+113,RWA-NISR-SAS-2024-v01,"Rwanda Seasonal Agricultural Survey 2024",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",0,0,Jan-07-25,Jan-07-25
+66,RWA-NISR-RSAS-2013-V1.1,"Rwanda Seasonal Agriculture Survey 2013",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",2012,2013,Jun-29-15,Jun-29-15
+78,RWA-NISR-RSAS-2014-V1.2,"Rwanda Seasonal Agriculture Survey 2014",Rwanda,"National Institute of Statistics of Rwanda<BR> NISR",2013,2014,Apr-24-17,Jun-30-17
+77,RWA-NISR-RSAS-2015-V1.1,"Rwanda Seasonal Agriculture Survey 2015",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",2014,2015,Apr-17-17,Apr-17-17
+76,RWA-NISR-RSAS-2016-V1.1,"Rwanda Seasonal Agriculture Survey 2016",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",2015,2016,Apr-17-17,Apr-17-17
+88,RWA-NISR-RSAS-2017-V0.1,"Rwanda Seasonal Agriculture Survey 2017",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",2016,2017,Feb-14-19,Feb-14-19
+86,RWA-NISR-RSAS-2018-v0.1,"Rwanda seasonal Agriculture Survey 2018",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",2017,2018,Feb-06-19,Feb-27-19
+35,RWA-NISR-RSPA-2001-v01.,"Rwanda Service Provision Assessment Survey 2001",Rwanda,"[""National Population Office - Ministry of Health""]",2001,2001,Aug-03-12,Aug-03-12
+60,rwa-nisr-russ-2012-v1,"User Satisfaction Survey 2012",Rwanda,"National Institute of Statistics of Rwanda - Ministry of Finance and Economic Planning",2012,2012,May-21-15,May-21-15
+24,RWA-NISR-VUP-2008-v01,"Vision 2020 Umurenge Program, Baseline Survey 2008",Rwanda,"[""National Institute of Statistics of Rwanda - MINECOFIN""]",2008,2008,Aug-03-12,Aug-03-12
