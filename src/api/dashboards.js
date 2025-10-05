@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { stats } from "../search/indexer.js";
+//import { stats } from "../search/indexer.js";
 
 const router = Router();
 
@@ -9,11 +9,11 @@ const router = Router();
  */
 router.get("/summary", async (req, res) => {
   try {
-    const s = stats();
+    //const s = stats();
     res.json({
       success: true,
       data: {
-        docs_count: s.docs_count
+        docs_count: ''
       }
     });
   } catch (err) {

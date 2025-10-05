@@ -3,16 +3,27 @@ import path from "path";
 import fs from "fs/promises";
 
 /**
- * Convert the first worksheet of an Excel file to a CSV file.
- * Returns the CSV path.
+ * Convert all worksheets of an Excel file to separate CSV files.
+ * Returns an array of CSV file paths.
  */
 export async function excelToCsv(excelPath) {
   const workbook = XLSX.readFile(excelPath);
-  const sheetName = workbook.SheetNames[0];
-  const worksheet = workbook.Sheets[sheetName];
+  const csvPaths = [];
 
-  const csv = XLSX.utils.sheet_to_csv(worksheet);
-  const csvPath = excelPath.replace(/\.[^/.]+$/, "") + ".csv";
-  await fs.writeFile(csvPath, csv, "utf8");
-  return csvPath;
+  for (const sheetName of workbook.SheetNames) {
+    const worksheet = workbook.Sheets[sheetName];
+    const csv = XLSX.utils.sheet_to_csv(worksheet);
+
+    // Create CSV file name based on Excel file + sheet name
+    const csvFileName = `${path.basename(excelPath, path.extname(excelPath))}_${sheetName}.csv`;
+    const csvPath = path.join(path.dirname(excelPath), csvFileName);
+
+    await fs.writeFile(csvPath, csv, "utf8");
+    csvPaths.push(csvPath);
+  }
+
+  return csvPaths;
 }
+
+// Default export (optional, so you can import either way)
+export default excelToCsv;

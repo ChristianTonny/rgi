@@ -1,0 +1,8 @@
+Table 0.1.  Headcount Poverty Rate in 2024 (actual) and 2017 (modelled) by province
+Province,EICV7_actual_2024,EICV5_predicted_2017,Change_2017_to_2024,Percent_change,Lower_bound_95CI,Upper_bound_95CI
+Kigali City,9.1,14.3,-5.3,-37,7,11.2
+South,34.7,47.6,-12.9,-27,32.7,36.7
+West,37.4,51.7,-14.3,-28,35,39.8
+North,20.2,33,-12.8,-39,18.1,22.3
+East,26.8,39.1,-12.4,-32,24.7,28.8
+Rwanda,27.4,39.8,-12.4,-31,26.4,28.4

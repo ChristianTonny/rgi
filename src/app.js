@@ -8,6 +8,7 @@ import searchRoutes from "./api/search.js";
 import queryRoutes from "./api/query.js";
 import dashboardsRoutes from "./api/dashboards.js";
 import tasksRoutes from "./api/tasks.js";
+import governonceRoutes from "./api/governonce.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,6 +24,7 @@ app.use("/api/search", searchRoutes);
 app.use("/api/query", queryRoutes);
 app.use("/api/dashboards", dashboardsRoutes);
 app.use("/api/tasks", tasksRoutes);
+app.use("/api/governonce", governonceRoutes);
 
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
