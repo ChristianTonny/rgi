@@ -71,65 +71,56 @@ export default function AIAssistant({ isOpen, onClose }: AIAssistantProps) {
       loadSuggestions()
     }
   }, [isOpen, token])
+const sendMessage = async (message: string) => {
+  if (!message.trim()) return;
 
-  const sendMessage = async (message: string) => {
-    if (!message.trim() || !token) return
+  const userMessage: AIMessage = {
+    id: `user-${Date.now()}`,
+    role: 'USER',
+    content: message,
+    timestamp: new Date()
+  };
 
-    const userMessage: AIMessage = {
-      id: `user-${Date.now()}`,
-      role: 'USER',
-      content: message,
+  setMessages(prev => [...prev, userMessage]);
+  setInputMessage('');
+  setIsLoading(true);
+
+  try {
+    const response = await fetch('http://192.168.56.1:5000/api/query', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ question: message }),
+    });
+
+    if (!response.ok) throw new Error('Failed to get AI response');
+
+    const data = await response.json();
+
+    const assistantMessage: AIMessage = {
+      id: `assistant-${Date.now()}`,
+      role: 'ASSISTANT',
+      content: data.answer,
+      sources: data.provenance?.map(id => ({ name: `DOC ${id}` })) || [],
+      timestamp: new Date(),
+    };
+
+    setMessages(prev => [...prev, assistantMessage]);
+  } catch (error) {
+    console.error('AI chat error:', error);
+    const errorMessage: AIMessage = {
+      id: `error-${Date.now()}`,
+      role: 'ASSISTANT',
+      content: 'I apologize, but I encountered an error processing your request. Please try again.',
       timestamp: new Date()
-    }
-
-    setMessages(prev => [...prev, userMessage])
-    setInputMessage('')
-    setIsLoading(true)
-
-    try {
-      const response = await fetch(buildApiUrl('/api/ai/chat'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          message,
-          conversationHistory: messages.slice(-10) // Send last 10 messages for context
-        }),
-      })
-
-      // Handle invalid/expired token
-      if (response.status === 403 || response.status === 401) {
-        localStorage.removeItem('gov-auth-token')
-        localStorage.removeItem('gov-auth-user')
-        window.location.href = '/login'
-        return
-      }
-
-      if (response.ok) {
-        const data = await response.json()
-        const assistantMessage: AIMessage = {
-          ...data.data,
-          timestamp: data?.data?.timestamp ? new Date(data.data.timestamp) : new Date(),
-        }
-        setMessages(prev => [...prev, assistantMessage])
-      } else {
-        throw new Error('Failed to get AI response')
-      }
-    } catch (error) {
-      console.error('AI chat error:', error)
-      const errorMessage: AIMessage = {
-        id: `error-${Date.now()}`,
-        role: 'ASSISTANT',
-        content: 'I apologize, but I encountered an error processing your request. Please try again.',
-        timestamp: new Date()
-      }
-      setMessages(prev => [...prev, errorMessage])
-    } finally {
-      setIsLoading(false)
-    }
+    };
+    setMessages(prev => [...prev, errorMessage]);
+  } finally {
+    setIsLoading(false);
   }
+};
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -147,9 +138,9 @@ export default function AIAssistant({ isOpen, onClose }: AIAssistantProps) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-end justify-end p-6 z-50">
-      <Card className="w-96 h-[600px] flex flex-col shadow-2xl bg-white">
-        <CardHeader className="flex-shrink-0 border-b">
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-end justify-center p-6 z-50">
+      <Card className="w-[60%] h-full flex flex-col shadow-2xl bg-white">
+        <CardHeader className="flex-shrink-0 border-b  border-blue-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
@@ -195,7 +186,7 @@ export default function AIAssistant({ isOpen, onClose }: AIAssistantProps) {
                 )}
               </div>
             )}
-
+<div className="flex-1 overflow-y-auto px-4 py-2 space-y-3 max-h-[60vh]">
             {messages.map((message) => (
               <div key={message.id} className={`flex ${message.role === 'USER' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[80%] ${message.role === 'USER' ? 'bg-blue-600 text-white' : 'bg-gray-100'} rounded-lg p-3`}>
@@ -230,7 +221,7 @@ export default function AIAssistant({ isOpen, onClose }: AIAssistantProps) {
                 </div>
               </div>
             ))}
-
+</div>
             {isLoading && (
               <div className="flex justify-start">
                 <div className="bg-gray-100 rounded-lg p-3">
@@ -247,7 +238,7 @@ export default function AIAssistant({ isOpen, onClose }: AIAssistantProps) {
           </div>
 
           {/* Input Area */}
-          <div className="border-t p-4">
+          <div className="border-t border-blue-200 p-4">
             <form onSubmit={handleSubmit} className="flex space-x-2">
               <input
                 ref={inputRef}

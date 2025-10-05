@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { Search, Loader2, ExternalLink, Sparkles } from 'lucide-react'
+import axios from 'axios'
 
 import { debounce, truncateText } from '@/lib/utils'
 import { useAuth, buildApiUrl } from '@/lib/auth'
@@ -12,6 +13,22 @@ interface SearchState {
   results: SearchResult[]
   isSearching: boolean
   error?: string
+}
+
+interface ApiSearchResult {
+  id: string
+  doc: {
+    appendix: string
+    parent: string
+    field: string
+    key_value: string
+    value: string | number
+  }
+}
+
+interface ApiSearchResponse {
+  total: number
+  hits: ApiSearchResult[]
 }
 
 const MIN_QUERY_LENGTH = 2
@@ -67,6 +84,36 @@ const DEMO_SEARCH_RESULTS: SearchResult[] = [
   },
 ]
 
+// Function to transform API response to your SearchResult format
+const transformApiResult = (apiResult: ApiSearchResult): SearchResult => {
+  const { doc } = apiResult
+  const title = `${doc.key_value} - ${doc.field}`.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+  const content = `${doc.appendix}: ${doc.key_value} ${doc.field} is ${doc.value}`
+  
+  return {
+    id: apiResult.id,
+    title,
+    type: 'DATA', // You can map this based on your needs
+    relevance: 1,
+    content,
+    source: {
+      id: 'search-api',
+      name: 'Data Catalogue',
+      type: 'STATISTICS',
+      lastUpdated: new Date(),
+      reliability: 85,
+    },
+    metadata: {
+      appendix: doc.appendix,
+      parent: doc.parent,
+      field: doc.field,
+      key_value: doc.key_value,
+      value: doc.value
+    },
+    createdAt: new Date(),
+  }
+}
+
 export default function GlobalSearch() {
   const { token } = useAuth()
   const router = useRouter()
@@ -95,40 +142,45 @@ export default function GlobalSearch() {
         setState((prev) => ({ ...prev, isSearching: true, error: undefined }))
 
         try {
-          const response = await fetch(
-            buildApiUrl(`/api/search?q=${encodeURIComponent(nextQuery)}&limit=6`),
+          // Use axios instead of fetch
+          const response = await axios.get<ApiSearchResponse>(
+            `http://192.168.56.1:5000/api/search?q=${encodeURIComponent(nextQuery)}`,
             {
-              headers: {
-                'Authorization': token ? `Bearer ${token}` : '',
-              },
+              headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+              timeout: 10000, // 10 second timeout
             }
           )
 
-          // Handle invalid/expired token
-          if (response.status === 403 || response.status === 401) {
-            localStorage.removeItem('gov-auth-token')
-            localStorage.removeItem('gov-auth-user')
-            window.location.href = '/login'
-            return
-          }
+          const data = response.data
 
-          if (!response.ok) {
-            throw new Error('Search request failed')
-          }
-
-          const data = await response.json()
-
-          if (Array.isArray(data?.data)) {
-            setState({ results: data.data as SearchResult[], isSearching: false })
+          if (data.hits && Array.isArray(data.hits)) {
+            // Transform API results to your application's format
+            const transformedResults = data.hits.map(transformApiResult)
+            setState({ 
+              results: transformedResults, 
+              isSearching: false,
+              error: transformedResults.length === 0 ? 'No results found' : undefined
+            })
           } else {
-            setState({ results: [], isSearching: false, error: 'No results found' })
+            setState({ 
+              results: [], 
+              isSearching: false, 
+              error: 'No results found' 
+            })
           }
         } catch (searchError) {
           console.error('Search error:', searchError)
+          
+          // Fallback to demo results if API is unavailable
+          const fallbackResults = DEMO_SEARCH_RESULTS.filter(result => 
+            result.title.toLowerCase().includes(nextQuery.toLowerCase()) ||
+            result.content.toLowerCase().includes(nextQuery.toLowerCase())
+          )
+          
           setState({
-            results: DEMO_SEARCH_RESULTS,
+            results: fallbackResults.length > 0 ? fallbackResults : DEMO_SEARCH_RESULTS,
             isSearching: false,
-            error: 'Showing demo search results while the search service is offline.',
+            error: 'Showing demo results while connecting to search service...',
           })
         }
       }, 300),
@@ -230,7 +282,7 @@ export default function GlobalSearch() {
       {isOpen && (
         <div
           role="listbox"
-          className="absolute left-0 right-0 mt-2 max-h-80 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg"
+          className="absolute left-0 right-0 mt-2 max-h-97 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg z-50"
         >
           {isSearching && (
             <div className="flex items-center gap-2 px-4 py-3 text-sm text-gray-600">
@@ -240,13 +292,20 @@ export default function GlobalSearch() {
           )}
 
           {!isSearching && error && (
-            <div className="px-4 py-3 text-sm text-red-600">{error}</div>
+            <div className="px-4 py-3 text-sm text-red-600">
+              {error}
+              {error.includes('demo') && (
+                <div className="mt-1 text-xs text-gray-500">
+                  Real search service: 
+                </div>
+              )}
+            </div>
           )}
 
           {!isSearching && !error && showHelperState && (
             <div className="flex items-start gap-2 px-4 py-3 text-sm text-gray-500">
               <Sparkles className="mt-0.5 h-4 w-4 text-blue-500" />
-              <span>Start typing to search projects, opportunities, policies, and intelligence insights.</span>
+              <span>Start typing to search Rwanda's datasets, statistics, and insights.</span>
             </div>
           )}
 
@@ -264,10 +323,20 @@ export default function GlobalSearch() {
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={() => handleNavigate(result)}
                   >
-                    <div>
+                    <div className="flex-1">
                       <p className="font-medium text-gray-900">{result.title}</p>
                       {result.content && (
                         <p className="mt-1 text-xs text-gray-500">{truncateText(result.content, 110)}</p>
+                      )}
+                      {result.metadata && (
+                        <div className="mt-1 text-xs text-gray-400">
+                          {result.metadata.appendice && (
+                            <div>{result.metadata.appendix.replace(/^Table\s*/i, '')}</div>
+                          )}
+                          {result.metadata.value && (
+                            <div>Value: {result.metadata.value}</div>
+                          )}
+                        </div>
                       )}
                       <div className="mt-2 flex items-center gap-2 text-xs text-gray-400">
                         <span className="rounded-full bg-gray-100 px-2 py-0.5 text-gray-600">{result.type}</span>
@@ -277,33 +346,34 @@ export default function GlobalSearch() {
                         </span>
                       </div>
                     </div>
-                    <ExternalLink size={16} className="mt-1 text-gray-400" />
+                    <ExternalLink size={16} className="mt-1 text-gray-400 flex-shrink-0" />
                   </button>
                 </li>
               ))}
             </ul>
           )}
 
-          <button
-            type="button"
-            className="block w-full rounded-b-lg bg-gray-50 px-4 py-2 text-left text-xs font-medium text-blue-600 hover:bg-gray-100"
-            onMouseDown={(event) => event.preventDefault()}
-            onClick={() => {
-              setIsOpen(false)
-              const params = new URLSearchParams(searchParams?.toString() ?? '')
-              params.set('view', 'intelligence')
-              params.set('query', query)
-              const nextUrl = `${pathname}?${params.toString()}`
-              const currentUrl = `${pathname}?${searchParams?.toString() ?? ''}`
-              if (nextUrl === currentUrl) return
-              router.replace(nextUrl, { scroll: false })
-            }}
-          >
-            View advanced search
-          </button>
+          {!isSearching && results.length > 0 && (
+            <button
+              type="button"
+              className="block w-full rounded-b-lg bg-gray-50 px-4 py-2 text-left text-xs font-medium text-blue-600 hover:bg-gray-100"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => {
+                setIsOpen(false)
+                const params = new URLSearchParams(searchParams?.toString() ?? '')
+                params.set('view', 'intelligence')
+                params.set('query', query)
+                const nextUrl = `${pathname}?${params.toString()}`
+                const currentUrl = `${pathname}?${searchParams?.toString() ?? ''}`
+                if (nextUrl === currentUrl) return
+                router.replace(nextUrl, { scroll: false })
+              }}
+            >
+              View advanced search
+            </button>
+          )}
         </div>
       )}
     </div>
   )
 }
-
