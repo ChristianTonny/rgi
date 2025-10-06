@@ -222,7 +222,7 @@ export default function GlobalSearch() {
           }}
           onFocus={() => setIsOpen(true)}
           placeholder="Search Rwanda's data..."
-          className="w-full rounded-lg border border-gray-300 bg-white pl-10 pr-4 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full rounded-md md:rounded-lg border border-gray-300 bg-white pl-10 pr-3 md:pr-4 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
           aria-label="Search Rwanda's data"
         />
       </div>
@@ -230,7 +230,7 @@ export default function GlobalSearch() {
       {isOpen && (
         <div
           role="listbox"
-          className="absolute left-0 right-0 mt-2 max-h-80 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg"
+          className="absolute left-0 right-0 mt-2 max-h-80 overflow-y-auto rounded-md md:rounded-lg border border-gray-200 bg-white shadow-lg z-50"
         >
           {isSearching && (
             <div className="flex items-center gap-2 px-4 py-3 text-sm text-gray-600">
@@ -260,7 +260,7 @@ export default function GlobalSearch() {
                 <li key={`${result.type}-${result.id}`}>
                   <button
                     type="button"
-                    className="flex w-full items-start justify-between gap-3 px-4 py-3 text-left text-sm hover:bg-blue-50"
+                    className="flex w-full items-start justify-between gap-3 px-3 md:px-4 py-3 text-left text-sm hover:bg-blue-50"
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={() => handleNavigate(result)}
                   >
@@ -286,7 +286,7 @@ export default function GlobalSearch() {
 
           <button
             type="button"
-            className="block w-full rounded-b-lg bg-gray-50 px-4 py-2 text-left text-xs font-medium text-blue-600 hover:bg-gray-100"
+            className="block w-full rounded-b-md md:rounded-b-lg bg-gray-50 px-3 md:px-4 py-2 text-left text-xs font-medium text-blue-600 hover:bg-gray-100"
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => {
               setIsOpen(false)

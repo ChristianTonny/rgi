@@ -206,40 +206,40 @@ export default function IntelligenceModules({ className }: IntelligenceModulesPr
     return (
       <Card className="border-l-4 border-l-green-500">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg">Resource Allocation</CardTitle>
-              <CardDescription>Budget efficiency and recommendations</CardDescription>
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <CardTitle className="text-base md:text-lg">Resource Allocation</CardTitle>
+              <CardDescription className="text-xs md:text-sm">Budget efficiency and recommendations</CardDescription>
             </div>
-            <TrendingUp className="h-8 w-8 text-green-600" />
+            <TrendingUp className="h-6 w-6 md:h-8 md:w-8 text-green-600 shrink-0" />
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               <div>
-                <p className="text-sm text-gray-600">Total Budget</p>
-                <p className="text-2xl font-bold">{formatCurrency(totalBudget)}</p>
+                <p className="text-xs md:text-sm text-gray-600">Total Budget</p>
+                <p className="text-xl md:text-2xl font-bold">{formatCurrency(totalBudget)}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Available</p>
-                <p className="text-2xl font-bold text-green-600">{formatCurrency(available)}</p>
+                <p className="text-xs md:text-sm text-gray-600">Available</p>
+                <p className="text-xl md:text-2xl font-bold text-green-600">{formatCurrency(available)}</p>
               </div>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2">
               <div className="flex-1 bg-gray-200 rounded-full h-2">
                 <div
                   className="bg-blue-600 h-2 rounded-full"
                   style={{ width: `${(spent / totalBudget) * 100}%` }}
                 ></div>
               </div>
-              <span className="text-sm font-medium">{formatPercentage(efficiency)}</span>
+              <span className="text-xs md:text-sm font-medium whitespace-nowrap">{formatPercentage(efficiency)}</span>
             </div>
             {data.nisrData && (
               <button
                 type="button"
                 onClick={() => showSourceModal(data.nisrData)}
-                className="text-xs text-blue-600 hover:underline mt-2 cursor-pointer"
+                className="text-xs text-blue-600 hover:underline mt-1 md:mt-2 cursor-pointer"
               >
                 📊 Poverty rate: {data.nisrData.povertyRate}% (NISR {data.nisrData.source} {data.nisrData.year})
               </button>

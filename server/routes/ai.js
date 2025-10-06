@@ -1,9 +1,21 @@
 const express = require('express')
 const { authenticateToken } = require('./auth')
+const { GoogleGenAI } = require('@google/genai')
 
 const router = express.Router()
 
+// Initialize Google GenAI SDK (backend-only). The client reads GEMINI_API_KEY/GOOGLE_AI_API_KEY automatically, but we pass explicitly.
+const genAI = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_KEY })
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash'
+
 const { hasNISRData, getDashboardStats } = require('../utils/nisr-loader');
+
+// System instructions define role and constraints
+const SYSTEM_INSTRUCTION = [
+  'You are an intelligent assistant for the Rwanda Government Intelligence Platform.',
+  'You help government officials analyze NISR data, track projects, manage budgets, and identify investment opportunities.',
+  'Always cite NISR sources when providing statistics. Be professional, concise, and data-driven.'
+].join(' ')
 
 const responseTemplates = {
   budget: {
@@ -103,85 +115,129 @@ function getRandomResponse(responses) {
   return responses[Math.floor(Math.random() * responses.length)]
 }
 
-router.post('/chat', authenticateToken, (req, res) => {
-  const { message, conversationId } = req.body
+router.post('/chat', authenticateToken, async (req, res) => {
+  const { message, conversationHistory } = req.body
 
-  if (!message || message.trim().length === 0) {
-    return res.status(400).json({
+  if (!message || typeof message !== 'string' || message.trim().length === 0) {
+    return res.status(400).json({ success: false, message: 'Message is required' })
+  }
+
+  try {
+    if (!process.env.GOOGLE_AI_API_KEY) {
+      console.error('Gemini chat error: Missing GOOGLE_AI_API_KEY')
+      return res.status(503).json({
+        success: false,
+        message: "I'm having trouble connecting. Please try again.",
+        ...(process.env.NODE_ENV !== 'production' ? { reason: 'Missing GOOGLE_AI_API_KEY' } : {}),
+      })
+    }
+
+    if (!GEMINI_MODEL) {
+      console.error('Gemini chat error: Missing GEMINI_MODEL env var')
+      return res.status(503).json({
+        success: false,
+        message: "I'm having trouble connecting. Please try again.",
+        ...(process.env.NODE_ENV !== 'production' ? { reason: 'Missing GEMINI_MODEL' } : {}),
+      })
+    }
+
+    const nisrStats = getDashboardStats()
+    const nisrAvailable = hasNISRData() && !!nisrStats
+
+    const buildNisrSource = () => {
+      if (!nisrAvailable) return undefined
+      const raw = nisrStats.poverty?.source || 'NISR National Statistics'
+      const trimmed = raw.replace(/^NISR\s*/i, '').trim() // avoid 'NISR NISR ...'
+      let url
+      if (/eicv/i.test(raw)) url = 'https://www.statistics.gov.rw/'
+      if (/rlfs|labour|labor/i.test(raw)) url = 'https://www.statistics.gov.rw/'
+      if (/national accounts|gdp/i.test(raw)) url = 'https://www.statistics.gov.rw/'
+      return [{
+        id: 'nisr-1',
+        name: `${trimmed} (${nisrStats.poverty?.year || nisrStats.gdp?.year || nisrStats.labor?.year || '2024'})`,
+        type: 'STATISTICS',
+        url,
+        lastUpdated: new Date(),
+        reliability: 95,
+      }]
+    }
+
+    // Build a concise NISR context block when data is available
+    const nisrContext = nisrAvailable ? [
+      'Available NISR Data (use when relevant):',
+      `- Poverty Rate: ${nisrStats.poverty?.nationalRate}% (NISR ${nisrStats.poverty?.source} ${nisrStats.poverty?.year})`,
+      `- GDP Growth: ${nisrStats.gdp?.totalGrowth}% (NISR ${nisrStats.gdp?.source} ${nisrStats.gdp?.year})`,
+      `- Youth Unemployment: ${nisrStats.labor?.youthUnemployment}% (NISR ${nisrStats.labor?.source} ${nisrStats.labor?.year})`
+    ].join('\n') : ''
+
+    // Map frontend conversation history to Gemini roles
+    const historyContents = Array.isArray(conversationHistory) ? conversationHistory.map((m) => ({
+      role: m.role === 'ASSISTANT' ? 'model' : 'user',
+      parts: [{ text: String(m.content || '') }]
+    })) : []
+
+    const contents = [
+      // Inject NISR context as a system-like preface via a user turn
+      ...(nisrContext ? [{ role: 'user', parts: [{ text: nisrContext }] }] : []),
+      ...historyContents,
+      { role: 'user', parts: [{ text: message }] },
+    ]
+
+    const result = await genAI.models.generateContent({
+      model: GEMINI_MODEL,
+      contents,
+      systemInstruction: SYSTEM_INSTRUCTION,
+    })
+    const responseText = result?.text || 'I could not generate a response at this time.'
+
+    // Attempt to extract token usage metrics if available (new SDK returns usage on result)
+    const usage = result?.usage || result?.responseMeta?.tokenUsage || undefined
+
+    // Determine if NISR sources should be attached based on query intent
+    const lower = message.toLowerCase()
+    const nisrRelevant = ['poverty', 'gdp', 'growth', 'unemployment', 'labor', 'rlfs', 'eicv', 'nisr'].some(k => lower.includes(k))
+
+    const sources = (nisrAvailable && nisrRelevant) ? buildNisrSource() : undefined
+
+    return res.json({
+      success: true,
+      data: {
+        id: `msg-${Date.now()}`,
+        role: 'ASSISTANT',
+        content: responseText,
+        timestamp: new Date().toISOString(),
+        sources,
+        dataSource: (nisrAvailable && nisrRelevant) ? 'NISR' : 'AI',
+        usage,
+      },
+    })
+  } catch (error) {
+    // Avoid leaking sensitive info; log minimal server-side
+    console.error('Gemini chat error:', error?.message || error)
+    return res.status(500).json({
       success: false,
-      message: 'Message is required',
+      message: "I'm having trouble connecting. Please try again.",
+      ...(process.env.NODE_ENV !== 'production' ? { reason: error?.message } : {}),
     })
   }
-
-  const category = findCategory(message)
-
-  let response = category
-    ? getRandomResponse(responseTemplates[category].responses)
-    : getRandomResponse(fallbackResponses)
-
-  // Replace NISR placeholders with real data if available
-  const nisrStats = getDashboardStats();
-  if (nisrStats) {
-    response = response
-      .replace('[NISR_POVERTY_DATA]',
-        `According to NISR ${nisrStats.poverty.source} (${nisrStats.poverty.year}), national poverty rate is ${nisrStats.poverty.nationalRate}% and extreme poverty is ${nisrStats.poverty.extremePovertyRate}%. Regional breakdown: ${Object.entries(nisrStats.poverty.byProvince).map(([province, rate]) => `${province} (${rate}%)`).join(', ')}.`)
-      .replace('[NISR_LABOR_DATA]',
-        `According to NISR ${nisrStats.labor.source} (${nisrStats.labor.year}), employment rate is ${nisrStats.labor.employmentRate}%, unemployment rate is ${nisrStats.labor.unemploymentRate}%, and youth unemployment is ${nisrStats.labor.youthUnemployment}%.`)
-      .replace('[NISR_GDP_DATA]',
-        `According to NISR ${nisrStats.gdp.source} (${nisrStats.gdp.year}), GDP growth rate is ${nisrStats.gdp.totalGrowth}%. Sector contributions: ${Object.entries(nisrStats.gdp.bySector).map(([sector, contrib]) => `${sector} (${contrib}%)`).join(', ')}.`);
-  } else {
-    // Remove placeholder tags if no NISR data available
-    response = response
-      .replace('[NISR_POVERTY_DATA]', 'NISR poverty data not yet loaded. Using estimates based on historical trends.')
-      .replace('[NISR_LABOR_DATA]', 'NISR labor force data not yet loaded. Using estimates based on historical surveys.')
-      .replace('[NISR_GDP_DATA]', 'NISR GDP data not yet loaded. Using estimates based on economic indicators.');
-  }
-
-  // Create sources array with NISR attribution if data is available
-  const sources = hasNISRData() ? [
-    {
-      id: 'nisr-1',
-      name: nisrStats ? `NISR ${nisrStats.poverty?.source || 'National Statistics'} (2024)` : 'NISR National Statistics',
-      type: 'DATA',
-      lastUpdated: new Date(),
-      reliability: 95,
-    }
-  ] : [];
-
-  return res.json({
-    success: true,
-    data: {
-      id: `msg-${Date.now()}`,
-      role: 'ASSISTANT',
-      content: response,
-      timestamp: new Date(),
-      sources: sources.length > 0 ? sources : undefined,
-      dataSource: hasNISRData() ? 'NISR' : 'MOCK',
-    },
-  })
 })
 
 router.get('/suggestions', authenticateToken, (req, res) => {
   const nisrStats = getDashboardStats();
 
   const suggestions = hasNISRData() ? [
-    "What's the current poverty rate?",
-    "Show me youth unemployment data",
-    "What's our GDP growth rate?",
-    'Show me projects at risk',
-    'Top investment opportunities',
+    "What's the current poverty rate in Rwanda?",
+    'How is youth unemployment trending?',
+    'Show me GDP growth by sector',
+    'Which provinces have the highest poverty rates?',
+    'What are the top investment opportunities?',
   ] : [
     'Show me projects at risk',
     "What's our budget efficiency?",
     'Top investment opportunities',
-    'Ministry performance comparison',
-    'Recent risk alerts',
   ];
 
-  return res.json({
-    success: true,
-    data: suggestions,
-  })
+  return res.json({ success: true, data: suggestions })
 })
 
 module.exports = router

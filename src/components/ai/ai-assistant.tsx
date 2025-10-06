@@ -15,6 +15,8 @@ import {
   ExternalLink 
 } from 'lucide-react'
 import { AIMessage } from '@/types'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface AIAssistantProps {
   isOpen: boolean
@@ -114,8 +116,35 @@ export default function AIAssistant({ isOpen, onClose }: AIAssistantProps) {
           timestamp: data?.data?.timestamp ? new Date(data.data.timestamp) : new Date(),
         }
         setMessages(prev => [...prev, assistantMessage])
+        // Persist usage metrics if provided by backend
+        try {
+          const usage = (data?.data as any)?.usage
+          if (usage) {
+            const storedRaw = localStorage.getItem('ai-usage')
+            const stored = storedRaw ? JSON.parse(storedRaw) : { totalInput: 0, totalOutput: 0, total: 0, requests: 0, byDay: {} }
+            const input = usage.inputTokens || usage.input_tokens || 0
+            const output = usage.outputTokens || usage.output_tokens || 0
+            const total = usage.totalTokens || usage.total_tokens || input + output
+            stored.totalInput += input
+            stored.totalOutput += output
+            stored.total += total
+            stored.requests += 1
+            const dayKey = new Date().toISOString().slice(0,10)
+            stored.byDay[dayKey] = stored.byDay[dayKey] || { input: 0, output: 0, total: 0, requests: 0 }
+            stored.byDay[dayKey].input += input
+            stored.byDay[dayKey].output += output
+            stored.byDay[dayKey].total += total
+            stored.byDay[dayKey].requests += 1
+            localStorage.setItem('ai-usage', JSON.stringify(stored))
+          }
+        } catch {}
       } else {
-        throw new Error('Failed to get AI response')
+        let serverMsg = 'Failed to get AI response'
+        try {
+          const err = await response.json()
+          if (err?.message) serverMsg = err.message + (err?.reason ? ` (${err.reason})` : '')
+        } catch {}
+        throw new Error(serverMsg)
       }
     } catch (error) {
       console.error('AI chat error:', error)
@@ -147,35 +176,32 @@ export default function AIAssistant({ isOpen, onClose }: AIAssistantProps) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-end justify-end p-6 z-50">
-      <Card className="w-96 h-[600px] flex flex-col shadow-2xl bg-white">
-        <CardHeader className="flex-shrink-0 border-b">
+    <div className="fixed inset-0 z-50 flex items-end justify-end p-4 sm:p-6 bg-black/50">
+      <Card className="w-full max-w-md h-[640px] sm:h-[680px] flex flex-col shadow-2xl bg-white">
+        <CardHeader className="flex-shrink-0 border-b px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                 <Bot size={16} className="text-white" />
               </div>
               <div>
-                <CardTitle className="text-lg">AI Assistant</CardTitle>
-                <CardDescription>Rwanda Government Intelligence</CardDescription>
+                <CardTitle className="text-base sm:text-lg">AI Assistant</CardTitle>
+                <CardDescription className="hidden sm:block">Rwanda Government Intelligence</CardDescription>
               </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={onClose}>
+            <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close AI Assistant">
               <X size={16} />
             </Button>
           </div>
         </CardHeader>
 
-        <CardContent className="flex-1 flex flex-col p-0">
-          {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <CardContent className="flex-1 p-0 flex flex-col min-h-0">
+          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
             {messages.length === 0 && (
               <div className="text-center text-gray-500 py-8">
                 <Bot size={48} className="mx-auto mb-4 text-gray-400" />
                 <p className="mb-2">Hello {user?.name}!</p>
                 <p className="text-sm">I'm your government intelligence assistant. How can I help you today?</p>
-                
-                {/* Suggestions */}
                 {suggestions.length > 0 && (
                   <div className="mt-6 space-y-2">
                     <div className="flex items-center space-x-1 text-xs text-gray-400">
@@ -198,29 +224,34 @@ export default function AIAssistant({ isOpen, onClose }: AIAssistantProps) {
 
             {messages.map((message) => (
               <div key={message.id} className={`flex ${message.role === 'USER' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] ${message.role === 'USER' ? 'bg-blue-600 text-white' : 'bg-gray-100'} rounded-lg p-3`}>
+                <div className={`max-w-[85%] ${message.role === 'USER' ? 'bg-blue-600 text-white' : 'bg-gray-100'} rounded-lg p-3`}>
                   <div className="flex items-start space-x-2">
                     {message.role === 'ASSISTANT' && (
                       <Bot size={16} className="mt-1 text-blue-600" />
                     )}
                     <div className="flex-1">
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                      
-                      {/* Sources */}
+                      <div className="prose prose-sm max-w-none">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
+                      </div>
                       {message.sources && message.sources.length > 0 && (
                         <div className="mt-2 pt-2 border-t border-gray-200">
                           <p className="text-xs text-gray-600 mb-1">Sources:</p>
                           {message.sources.map((source, index) => (
-                            <div key={index} className="flex items-center space-x-1 text-xs text-blue-600">
-                              <ExternalLink size={10} />
-                              <span>{source.name}</span>
+                            <div key={index} className="flex items-center space-x-1 text-xs">
+                              <ExternalLink size={10} className="text-blue-600" />
+                              {source.url ? (
+                                <a href={source.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                                  {source.name}
+                                </a>
+                              ) : (
+                                <span className="text-gray-700">{source.name}</span>
+                              )}
                             </div>
                           ))}
                         </div>
                       )}
-                      
                       <p className="text-xs text-gray-400 mt-1">
-                        {message.timestamp.toLocaleTimeString()}
+                        {new Date(message.timestamp as unknown as string).toLocaleTimeString()}
                       </p>
                     </div>
                     {message.role === 'USER' && (
@@ -242,13 +273,11 @@ export default function AIAssistant({ isOpen, onClose }: AIAssistantProps) {
                 </div>
               </div>
             )}
-            
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Area */}
-          <div className="border-t p-4">
-            <form onSubmit={handleSubmit} className="flex space-x-2">
+          <div className="border-t px-3 sm:px-4 py-3 sticky bottom-0 bg-white">
+            <form onSubmit={handleSubmit} className="flex items-center space-x-2">
               <input
                 ref={inputRef}
                 type="text"
@@ -256,7 +285,7 @@ export default function AIAssistant({ isOpen, onClose }: AIAssistantProps) {
                 onChange={(e) => setInputMessage(e.target.value)}
                 placeholder="Ask about Rwanda's data..."
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={isLoading}
+                disabled={false}
               />
               <Button
                 type="submit"
@@ -267,20 +296,10 @@ export default function AIAssistant({ isOpen, onClose }: AIAssistantProps) {
                 <Send size={16} />
               </Button>
             </form>
-            
             {messages.length > 0 && (
               <div className="mt-2 flex justify-between items-center">
-                <span className="text-xs text-gray-500">
-                  {messages.length} messages
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearConversation}
-                  className="text-xs"
-                >
-                  Clear chat
-                </Button>
+                <span className="text-xs text-gray-500">{messages.length} messages</span>
+                <Button variant="ghost" size="sm" onClick={clearConversation} className="text-xs">Clear chat</Button>
               </div>
             )}
           </div>
