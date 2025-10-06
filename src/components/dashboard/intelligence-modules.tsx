@@ -14,43 +14,16 @@ import {
   Zap,
   CheckCircle,
   Users,
-  BarChart,
-  ChartColumnIncreasingIcon,
-  PieChart,
-  LineChart,
-  Map,
-  School,
-  DollarSign,
-  Users2,
-  BookOpen,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { exportToCSV } from '@/lib/export-utils'
 import { IntelligenceModule } from '@/types'
-import axios from 'axios'
 
 interface IntelligenceModulesProps {
   className?: string
 }
 
-interface ApiSearchResult {
-  id: string
-  doc: {
-    appendix: string
-    parent: string
-    field: string
-    key_value: string
-    value: string | number
-  }
-}
-
-interface ApiSearchResponse {
-  total: number
-  hits: ApiSearchResult[]
-}
-
-// Enhanced demo data with real insights from your API
-const createDemoModules = (realData: any): IntelligenceModule[] => [
+const DEMO_MODULES: IntelligenceModule[] = [
   {
     id: 'resource-allocation-1',
     title: 'Resource Allocation Intelligence',
@@ -62,19 +35,8 @@ const createDemoModules = (realData: any): IntelligenceModule[] => [
       available: 1_200_000_000,
       spent: 3_800_000_000,
       efficiency: 87.5,
-      nisrData: {
-        povertyRate: realData.poverty?.kigali || 9.1,
-        source: 'EICV7',
-        year: 2024,
-        reliability: 'High',
-        url: 'http://192.168.56.1:5000/api/search?q=poverty'
-      }
     },
-    insights: realData.poverty ? [
-      `Poverty reduction: Kigali City shows ${realData.poverty.kigali}% poverty rate, down from ${realData.poverty.kigaliPrevious || 14.3}% in 2017`,
-      `Regional disparities: Southern Province poverty rate at ${realData.poverty.south || 34.7}% requires targeted interventions`,
-      `National trend: Overall poverty reduction of ${realData.poverty.nationalChange || -27}% since 2017`
-    ] : [],
+    insights: [],
   },
   {
     id: 'opportunity-radar-1',
@@ -83,22 +45,11 @@ const createDemoModules = (realData: any): IntelligenceModule[] => [
     priority: 'HIGH',
     lastUpdated: new Date(),
     data: {
-      totalOpportunities: realData.population?.total ? Math.floor(realData.population.total / 100000) : 45,
+      totalOpportunities: 45,
       highPriorityOpportunities: 12,
       estimatedValue: 2_500_000_000,
-      nisrData: {
-        gdpGrowth: realData.gdp?.latest || 7.5,
-        source: 'NISR GDP',
-        year: 2024,
-        reliability: 'High',
-        url: 'http://192.168.56.1:5000/api/search?q=gdp'
-      }
     },
-    insights: realData.gdp ? [
-      `GDP Growth: Current quarter shows ${realData.gdp.latest}% growth`,
-      `Economic momentum: ${realData.gdp.trend || 'stable'} growth trend observed`,
-      `Sector analysis: Services sector leading with ${realData.gdp.servicesGrowth || 12}% growth`
-    ] : [],
+    insights: [],
   },
   {
     id: 'performance-monitor-1',
@@ -111,92 +62,9 @@ const createDemoModules = (realData: any): IntelligenceModule[] => [
       totalProjects: 42,
       onTimeDelivery: 78.5,
       qualityScore: 85.2,
-      nisrData: {
-        youthUnemployment: realData.education?.youthEmployment || 15.2,
-        source: 'Education Statistics',
-        year: 2024,
-        reliability: 'Medium',
-        url: 'http://192.168.56.1:5000/api/search?q=education'
-      }
     },
-    insights: realData.education ? [
-      `Education gap: ${realData.education.primaryCompletion || 85}% primary completion rate`,
-      `Gender parity: ${realData.education.genderParity || 48}% female enrollment in tertiary education`,
-      `Literacy: ${realData.education.literacyRate || 75}% adult literacy rate`
-    ] : [],
+    insights: [],
   },
-  {
-    id: 'population-insights-1',
-    title: 'Population Insights',
-    type: 'population-insights',
-    priority: 'MEDIUM',
-    lastUpdated: new Date(),
-    data: {
-      totalPopulation: realData.population?.total || 13_500_000,
-      urbanPopulation: realData.population?.urban || 3_200_000,
-      ruralPopulation: realData.population?.rural || 10_300_000,
-      growthRate: 2.5,
-      nisrData: {
-        source: 'Population Census',
-        year: 2024,
-        reliability: 'High',
-        url: 'http://192.168.56.1:5000/api/search?q=population'
-      }
-    },
-    insights: realData.population ? [
-      `Urbanization: ${formatPercentage((realData.population.urban / realData.population.total) * 100)} urban population`,
-      `Youth demographic: ${realData.population.youthPercent || 40}% under 25 years`,
-      `Regional distribution: Even population spread across provinces`
-    ] : [],
-  },
-  {
-    id: 'economic-growth-1',
-    title: 'Economic Growth Dashboard',
-    type: 'economic-growth',
-    priority: 'HIGH',
-    lastUpdated: new Date(),
-    data: {
-      gdpGrowth: realData.gdp?.latest || 7.5,
-      inflationRate: 5.2,
-      foreignInvestment: 1_200_000_000,
-      exportGrowth: 12.8,
-      nisrData: {
-        source: 'Economic Indicators',
-        year: 2024,
-        reliability: 'High',
-        url: 'http://192.168.56.1:5000/api/search?q=gdp'
-      }
-    },
-    insights: realData.gdp ? [
-      `Sustained growth: ${realData.gdp.latest}% GDP growth in current quarter`,
-      `Investment climate: ${realData.gdp.investmentGrowth || 15}% increase in foreign direct investment`,
-      `Export performance: Manufacturing exports up by ${realData.gdp.exportGrowth || 12}%`
-    ] : [],
-  },
-  {
-    id: 'education-analytics-1',
-    title: 'Education Analytics',
-    type: 'education-analytics',
-    priority: 'MEDIUM',
-    lastUpdated: new Date(),
-    data: {
-      literacyRate: realData.education?.literacyRate || 75.4,
-      primaryEnrollment: realData.education?.primaryEnrollment || 95.2,
-      secondaryEnrollment: realData.education?.secondaryEnrollment || 65.8,
-      tertiaryEnrollment: realData.education?.tertiaryEnrollment || 12.3,
-      nisrData: {
-        source: 'Education Statistics',
-        year: 2024,
-        reliability: 'High',
-        url: 'http://192.168.56.1:5000/api/search?q=education'
-      }
-    },
-    insights: realData.education ? [
-      `Literacy achievement: ${realData.education.literacyRate || 75}% national literacy rate`,
-      `Gender balance: Near parity in primary and secondary education`,
-      `Higher education: Steady growth in tertiary enrollment`
-    ] : [],
-  }
 ]
 
 export default function IntelligenceModules({ className }: IntelligenceModulesProps) {
@@ -205,99 +73,10 @@ export default function IntelligenceModules({ className }: IntelligenceModulesPr
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [nisrModal, setNisrModal] = useState<{ isOpen: boolean, data: any | null }>({ isOpen: false, data: null })
-  const [realData, setRealData] = useState<any>({})
 
   const showSourceModal = (data: any) => {
     setNisrModal({ isOpen: true, data })
   }
-
-  // Fetch real data from your search API
-  useEffect(() => {
-    const fetchRealData = async () => {
-      const endpoints = [
-        { key: 'poverty', url: 'http://192.168.56.1:5000/api/search?q=poverty' },
-        { key: 'population', url: 'http://192.168.56.1:5000/api/search?q=population' },
-        { key: 'gdp', url: 'http://192.168.56.1:5000/api/search?q=gdp' },
-        { key: 'education', url: 'http://192.168.56.1:5000/api/search?q=education' }
-      ]
-
-      const data: any = {}
-
-      for (const endpoint of endpoints) {
-        try {
-          const response = await axios.get<ApiSearchResponse>(endpoint.url, { timeout: 5000 })
-          const hits = response.data.hits
-
-          // Process poverty data
-          if (endpoint.key === 'poverty') {
-            const kigaliData = hits.find(hit => 
-              hit.doc.key_value === 'Kigali City' && hit.doc.field === 'eicv7_actual_2024'
-            )
-            const southData = hits.find(hit => 
-              hit.doc.key_value === 'South' && hit.doc.field === 'eicv7_actual_2024'
-            )
-            const changeData = hits.find(hit => 
-              hit.doc.key_value === 'Kigali City' && hit.doc.field === 'percent_change'
-            )
-
-            data.poverty = {
-              kigali: kigaliData?.doc.value || 9.1,
-              south: southData?.doc.value || 34.7,
-              nationalChange: changeData?.doc.value || -27
-            }
-          }
-
-          // Process population data
-          if (endpoint.key === 'population') {
-            const totalData = hits.find(hit => 
-              hit.doc.key_value === 'Total Counts' && hit.doc.field === 'rwanda'
-            )
-            data.population = {
-              total: totalData?.doc.value || 8289582,
-              urban: 3200000, // Estimated urban population
-              rural: 5089582  // Remainder
-            }
-          }
-
-          // Process GDP data
-          if (endpoint.key === 'gdp') {
-            // Get the latest GDP growth value
-            const gdpValues = hits
-              .filter(hit => hit.doc.key_value === 'GROSS DOMESTIC PRODUCT (GDP)')
-              .map(hit => parseFloat(hit.doc.value as string))
-              .filter(val => !isNaN(val))
-
-            data.gdp = {
-              latest: gdpValues[gdpValues.length - 1] || 7.5,
-              average: gdpValues.reduce((a, b) => a + b, 0) / gdpValues.length || 7.0,
-              trend: gdpValues[gdpValues.length - 1] > gdpValues[0] ? 'increasing' : 'decreasing'
-            }
-          }
-
-          // Process education data
-          if (endpoint.key === 'education') {
-            const literacyData = hits.find(hit => 
-              hit.doc.field.includes('Kinyarwanda and English')
-            )
-            data.education = {
-              literacyRate: literacyData?.doc.value ? parseFloat(literacyData.doc.value as string) + 54 : 75.4,
-              primaryEnrollment: 95.2,
-              secondaryEnrollment: 65.8
-            }
-          }
-
-        } catch (error) {
-          console.warn(`Failed to fetch ${endpoint.key} data:`, error)
-          // Continue with other endpoints even if one fails
-        }
-      }
-
-      setRealData(data)
-      return data
-    }
-
-    fetchRealData()
-  }, [])
 
   useEffect(() => {
     let isMounted = true
@@ -305,15 +84,14 @@ export default function IntelligenceModules({ className }: IntelligenceModulesPr
 
     const useDemoData = (message?: string) => {
       if (isMounted) {
-        const demoModules = createDemoModules(realData)
-        setModules(demoModules)
-        setError(message ?? 'Using enhanced demo data with real insights from NISR')
+        setModules(DEMO_MODULES.map((module) => ({ ...module, lastUpdated: new Date() })))
+        setError(message ?? null)
       }
     }
 
     const fetchModules = async () => {
       if (!token) {
-        useDemoData('Using enhanced intelligence data with real NISR insights.')
+        useDemoData('Using demo data because no authentication token is available.')
         return
       }
 
@@ -333,6 +111,7 @@ export default function IntelligenceModules({ className }: IntelligenceModulesPr
 
         const data = await response.json().catch(() => null)
 
+        // Handle invalid/expired token - clear auth and redirect to login
         if (response.status === 403 || response.status === 401) {
           localStorage.removeItem('gov-auth-token')
           localStorage.removeItem('gov-auth-user')
@@ -355,7 +134,7 @@ export default function IntelligenceModules({ className }: IntelligenceModulesPr
         }
       } catch (fetchError: any) {
         if (controller.signal.aborted) return
-        
+        // Retry once on transient network/AbortError
         try {
           if (fetchError?.name === 'AbortError' || fetchError?.message?.includes('Failed to fetch')) {
             const retryResponse = await fetch(buildApiUrl('/api/intelligence/modules'), {
@@ -382,7 +161,7 @@ export default function IntelligenceModules({ className }: IntelligenceModulesPr
           // ignore retry error and fall back to demo data
         }
         console.error('Failed to fetch intelligence modules:', fetchError)
-        useDemoData('Enhanced with real NISR data. Showing intelligent insights dashboard.')
+        useDemoData('Unable to reach the analytics service. Showing cached demo data.')
       } finally {
         if (isMounted) {
           setIsLoading(false)
@@ -394,9 +173,10 @@ export default function IntelligenceModules({ className }: IntelligenceModulesPr
 
     return () => {
       isMounted = false
+      // Avoid aborting during route replacement to reduce spurious AbortErrors
       try { controller.abort() } catch {}
     }
-  }, [token, realData])
+  }, [token])
 
   if (isLoading) {
     return (
@@ -418,16 +198,18 @@ export default function IntelligenceModules({ className }: IntelligenceModulesPr
 
   const renderResourceAllocation = (module: IntelligenceModule) => {
     const data = module.data
+    const efficiency = data.efficiency
+    const available = data.available
+    const spent = data.spent
+    const totalBudget = data.totalBudget
+
     return (
-      <Card className="border-l-4 border-l-green-500 hover:shadow-lg transition-shadow">
+      <Card className="border-l-4 border-l-green-500">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <DollarSign className="h-5 w-5" />
-                Resource Allocation
-              </CardTitle>
-              <CardDescription>Budget efficiency and poverty insights</CardDescription>
+              <CardTitle className="text-lg">Resource Allocation</CardTitle>
+              <CardDescription>Budget efficiency and recommendations</CardDescription>
             </div>
             <TrendingUp className="h-8 w-8 text-green-600" />
           </div>
@@ -435,51 +217,31 @@ export default function IntelligenceModules({ className }: IntelligenceModulesPr
         <CardContent>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-3 bg-green-50 rounded-lg">
+              <div>
                 <p className="text-sm text-gray-600">Total Budget</p>
-                <p className="text-xl font-bold text-green-700">{formatCurrency(data.totalBudget)}</p>
+                <p className="text-2xl font-bold">{formatCurrency(totalBudget)}</p>
               </div>
-              <div className="text-center p-3 bg-blue-50 rounded-lg">
+              <div>
                 <p className="text-sm text-gray-600">Available</p>
-                <p className="text-xl font-bold text-blue-700">{formatCurrency(data.available)}</p>
+                <p className="text-2xl font-bold text-green-600">{formatCurrency(available)}</p>
               </div>
             </div>
-            
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Budget Utilization</span>
-                <span className="font-medium">{formatPercentage(data.efficiency)}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-3">
-                <div 
-                  className="bg-gradient-to-r from-green-500 to-blue-500 h-3 rounded-full transition-all duration-500"
-                  style={{ width: `${(data.spent / data.totalBudget) * 100}%` }}
+            <div className="flex items-center space-x-2">
+              <div className="flex-1 bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full"
+                  style={{ width: `${(spent / totalBudget) * 100}%` }}
                 ></div>
               </div>
+              <span className="text-sm font-medium">{formatPercentage(efficiency)}</span>
             </div>
-
-            {module.insights && module.insights.length > 0 && (
-              <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                <p className="text-sm font-medium text-yellow-800 mb-2">Key Insights:</p>
-                <ul className="text-xs text-yellow-700 space-y-1">
-                  {module.insights.slice(0, 2).map((insight, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <div className="w-1 h-1 bg-yellow-500 rounded-full mt-1.5 flex-shrink-0"></div>
-                      {insight}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
             {data.nisrData && (
               <button
                 type="button"
                 onClick={() => showSourceModal(data.nisrData)}
-                className="text-xs flex gap-2 items-center text-blue-600 hover:underline mt-2 cursor-pointer w-full justify-center p-2 border border-blue-200 rounded-lg hover:bg-blue-50"
+                className="text-xs text-blue-600 hover:underline mt-2 cursor-pointer"
               >
-                <ChartColumnIncreasingIcon size={16} />
-                Poverty rate: {data.nisrData.povertyRate}% (NISR {data.nisrData.source} {data.nisrData.year})
+                📊 Poverty rate: {data.nisrData.povertyRate}% (NISR {data.nisrData.source} {data.nisrData.year})
               </button>
             )}
           </div>
@@ -490,60 +252,44 @@ export default function IntelligenceModules({ className }: IntelligenceModulesPr
 
   const renderOpportunityRadar = (module: IntelligenceModule) => {
     const data = module.data
+    const totalOpportunities = data.totalOpportunities
+    const highPriority = data.highPriorityOpportunities
+    const estimatedValue = data.estimatedValue
+
     return (
-      <Card className="border-l-4 border-l-blue-500 hover:shadow-lg transition-shadow">
+      <Card className="border-l-4 border-l-blue-500">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Target className="h-5 w-5" />
-                Opportunity Radar
-              </CardTitle>
-              <CardDescription>Investment and growth opportunities</CardDescription>
+              <CardTitle className="text-lg">Opportunity Radar</CardTitle>
+              <CardDescription>Investment and development opportunities</CardDescription>
             </div>
-            <BarChart className="h-8 w-8 text-blue-600" />
+            <Target className="h-8 w-8 text-blue-600" />
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="text-center p-3 bg-blue-50 rounded-lg">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
                 <p className="text-sm text-gray-600">Total Opportunities</p>
-                <p className="text-2xl font-bold text-blue-700">{formatNumber(data.totalOpportunities)}</p>
+                <p className="text-2xl font-bold">{formatNumber(totalOpportunities)}</p>
               </div>
-              <div className="text-center p-3 bg-purple-50 rounded-lg">
+              <div>
                 <p className="text-sm text-gray-600">High Priority</p>
-                <p className="text-2xl font-bold text-purple-700">{formatNumber(data.highPriorityOpportunities)}</p>
+                <p className="text-2xl font-bold text-blue-600">{formatNumber(highPriority)}</p>
               </div>
             </div>
-            
-            <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg">
-              <p className="text-sm">Estimated Market Value</p>
-              <p className="text-xl font-bold">{formatCurrency(data.estimatedValue)}</p>
+            <div>
+              <p className="text-sm text-gray-600">Estimated Market Value</p>
+              <p className="text-xl font-bold">{formatCurrency(estimatedValue)}</p>
             </div>
-
-            {module.insights && module.insights.length > 0 && (
-              <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm font-medium text-blue-800 mb-2">Economic Insights:</p>
-                <ul className="text-xs text-blue-700 space-y-1">
-                  {module.insights.slice(0, 2).map((insight, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <div className="w-1 h-1 bg-blue-500 rounded-full mt-1.5 flex-shrink-0"></div>
-                      {insight}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
             {data.nisrData && (
               <button
                 type="button"
                 onClick={() => showSourceModal(data.nisrData)}
-                className="text-xs flex gap-2 items-center text-blue-600 hover:underline mt-2 cursor-pointer w-full justify-center p-2 border border-blue-200 rounded-lg hover:bg-blue-50"
+                className="text-xs text-blue-600 hover:underline mt-2 cursor-pointer"
               >
-                <TrendingUp size={16} />
-                GDP growth: {data.nisrData.gdpGrowth}% (NISR {data.nisrData.source} {data.nisrData.year})
+                📊 GDP growth: {data.nisrData.gdpGrowth}% (NISR {data.nisrData.source} {data.nisrData.year})
               </button>
             )}
           </div>
@@ -554,279 +300,56 @@ export default function IntelligenceModules({ className }: IntelligenceModulesPr
 
   const renderPerformanceMonitor = (module: IntelligenceModule) => {
     const data = module.data
+    const projectsAtRisk = data.projectsAtRisk
+    const totalProjects = data.totalProjects
+    const onTimeDelivery = data.onTimeDelivery
+    const qualityScore = data.qualityScore
+
     return (
-      <Card className="border-l-4 border-l-yellow-500 hover:shadow-lg transition-shadow">
+      <Card className="border-l-4 border-l-yellow-500">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Building className="h-5 w-5" />
-                Performance Monitor
-              </CardTitle>
+              <CardTitle className="text-lg">Performance Monitor</CardTitle>
               <CardDescription>Project risk and performance tracking</CardDescription>
             </div>
-            <CheckCircle className="h-8 w-8 text-yellow-600" />
+            <Building className="h-8 w-8 text-yellow-600" />
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="text-center p-3 bg-red-50 rounded-lg">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
                 <p className="text-sm text-gray-600">Projects at Risk</p>
-                <div className="flex items-center justify-center space-x-1">
-                  <p className="text-2xl font-bold text-red-600">{formatNumber(data.projectsAtRisk)}</p>
-                  <span className="text-sm text-gray-500">/ {formatNumber(data.totalProjects)}</span>
+                <div className="flex items-center space-x-2">
+                  <p className="text-2xl font-bold text-yellow-600">{formatNumber(projectsAtRisk)}</p>
+                  <span className="text-sm text-gray-500">/ {formatNumber(totalProjects)}</span>
                 </div>
               </div>
-              <div className="text-center p-3 bg-green-50 rounded-lg">
+              <div>
                 <p className="text-sm text-gray-600">Quality Score</p>
-                <p className="text-2xl font-bold text-green-600">{formatPercentage(data.qualityScore)}</p>
+                <p className="text-2xl font-bold text-green-600">{formatPercentage(qualityScore)}</p>
               </div>
             </div>
-
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>On-Time Delivery</span>
-                <span className="font-medium">{formatPercentage(data.onTimeDelivery)}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-3">
-                <div 
-                  className="bg-gradient-to-r from-green-400 to-green-600 h-3 rounded-full transition-all duration-500"
-                  style={{ width: `${data.onTimeDelivery}%` }}
-                ></div>
-              </div>
-            </div>
-
-            {module.insights && module.insights.length > 0 && (
-              <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
-                <p className="text-sm font-medium text-green-800 mb-2">Education Insights:</p>
-                <ul className="text-xs text-green-700 space-y-1">
-                  {module.insights.slice(0, 2).map((insight, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <div className="w-1 h-1 bg-green-500 rounded-full mt-1.5 flex-shrink-0"></div>
-                      {insight}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {data.nisrData && (
-              <button
-                type="button"
-                onClick={() => showSourceModal(data.nisrData)}
-                className="text-xs flex gap-2 items-center text-blue-600 hover:underline mt-2 cursor-pointer w-full justify-center p-2 border border-blue-200 rounded-lg hover:bg-blue-50"
-              >
-                <School size={16} />
-                Education metrics available (NISR {data.nisrData.source} {data.nisrData.year})
-              </button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  const renderPopulationInsights = (module: IntelligenceModule) => {
-    const data = module.data
-    return (
-      <Card className="border-l-4 border-l-purple-500 hover:shadow-lg transition-shadow">
-        <CardHeader>
-          <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Users2 className="h-5 w-5" />
-                Population Insights
-              </CardTitle>
-              <CardDescription>Demographic trends and distribution</CardDescription>
-            </div>
-            <Map className="h-8 w-8 text-purple-600" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="text-center p-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg">
-              <p className="text-sm">Total Population</p>
-              <p className="text-2xl font-bold">{formatNumber(data.totalPopulation)}</p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="text-center p-3 bg-blue-50 rounded-lg">
-                <p className="text-sm text-gray-600">Urban</p>
-                <p className="text-lg font-bold text-blue-700">{formatNumber(data.urbanPopulation)}</p>
-                <p className="text-xs text-gray-500">
-                  {formatPercentage((data.urbanPopulation / data.totalPopulation) * 100)}
-                </p>
-              </div>
-              <div className="text-center p-3 bg-green-50 rounded-lg">
-                <p className="text-sm text-gray-600">Rural</p>
-                <p className="text-lg font-bold text-green-700">{formatNumber(data.ruralPopulation)}</p>
-                <p className="text-xs text-gray-500">
-                  {formatPercentage((data.ruralPopulation / data.totalPopulation) * 100)}
-                </p>
+              <p className="text-sm text-gray-600">On-Time Delivery Rate</p>
+              <div className="flex items-center space-x-2">
+                <div className="flex-1 bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-green-600 h-2 rounded-full"
+                    style={{ width: `${onTimeDelivery}%` }}
+                  ></div>
+                </div>
+                <span className="text-sm font-medium">{formatPercentage(onTimeDelivery)}</span>
               </div>
             </div>
-
-            {module.insights && module.insights.length > 0 && (
-              <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
-                <p className="text-sm font-medium text-purple-800 mb-2">Demographic Insights:</p>
-                <ul className="text-xs text-purple-700 space-y-1">
-                  {module.insights.map((insight, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <div className="w-1 h-1 bg-purple-500 rounded-full mt-1.5 flex-shrink-0"></div>
-                      {insight}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
             {data.nisrData && (
               <button
                 type="button"
                 onClick={() => showSourceModal(data.nisrData)}
-                className="text-xs flex gap-2 items-center text-blue-600 hover:underline mt-2 cursor-pointer w-full justify-center p-2 border border-blue-200 rounded-lg hover:bg-blue-50"
+                className="text-xs text-blue-600 hover:underline mt-2 cursor-pointer"
               >
-                <Users2 size={16} />
-                Population data from NISR {data.nisrData.source} {data.nisrData.year}
-              </button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  const renderEconomicGrowth = (module: IntelligenceModule) => {
-    const data = module.data
-    return (
-      <Card className="border-l-4 border-l-orange-500 hover:shadow-lg transition-shadow">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <LineChart className="h-5 w-5" />
-                Economic Growth
-              </CardTitle>
-              <CardDescription>Macroeconomic indicators and trends</CardDescription>
-            </div>
-            <TrendingUp className="h-8 w-8 text-orange-600" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="text-center p-3 bg-green-50 rounded-lg">
-                <p className="text-sm text-gray-600">GDP Growth</p>
-                <p className="text-xl font-bold text-green-700">{formatPercentage(data.gdpGrowth)}</p>
-              </div>
-              <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                <p className="text-sm text-gray-600">Inflation</p>
-                <p className="text-xl font-bold text-yellow-700">{formatPercentage(data.inflationRate)}</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="text-center p-3 bg-blue-50 rounded-lg">
-                <p className="text-sm text-gray-600">Foreign Investment</p>
-                <p className="text-lg font-bold text-blue-700">{formatCurrency(data.foreignInvestment)}</p>
-              </div>
-              <div className="text-center p-3 bg-purple-50 rounded-lg">
-                <p className="text-sm text-gray-600">Export Growth</p>
-                <p className="text-xl font-bold text-purple-700">{formatPercentage(data.exportGrowth)}</p>
-              </div>
-            </div>
-
-            {module.insights && module.insights.length > 0 && (
-              <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
-                <p className="text-sm font-medium text-orange-800 mb-2">Economic Insights:</p>
-                <ul className="text-xs text-orange-700 space-y-1">
-                  {module.insights.map((insight, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <div className="w-1 h-1 bg-orange-500 rounded-full mt-1.5 flex-shrink-0"></div>
-                      {insight}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {data.nisrData && (
-              <button
-                type="button"
-                onClick={() => showSourceModal(data.nisrData)}
-                className="text-xs flex gap-2 items-center text-blue-600 hover:underline mt-2 cursor-pointer w-full justify-center p-2 border border-blue-200 rounded-lg hover:bg-blue-50"
-              >
-                <LineChart size={16} />
-                Economic data from NISR {data.nisrData.source} {data.nisrData.year}
-              </button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  const renderEducationAnalytics = (module: IntelligenceModule) => {
-    const data = module.data
-    return (
-      <Card className="border-l-4 border-l-indigo-500 hover:shadow-lg transition-shadow">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <BookOpen className="h-5 w-5" />
-                Education Analytics
-              </CardTitle>
-              <CardDescription>Education system performance</CardDescription>
-            </div>
-            <School className="h-8 w-8 text-indigo-600" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="text-center p-3 bg-indigo-50 rounded-lg">
-              <p className="text-sm text-gray-600">Literacy Rate</p>
-              <p className="text-2xl font-bold text-indigo-700">{formatPercentage(data.literacyRate)}</p>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2">
-              <div className="text-center p-2 bg-green-50 rounded">
-                <p className="text-xs text-gray-600">Primary</p>
-                <p className="text-sm font-bold text-green-700">{formatPercentage(data.primaryEnrollment)}</p>
-              </div>
-              <div className="text-center p-2 bg-blue-50 rounded">
-                <p className="text-xs text-gray-600">Secondary</p>
-                <p className="text-sm font-bold text-blue-700">{formatPercentage(data.secondaryEnrollment)}</p>
-              </div>
-              <div className="text-center p-2 bg-purple-50 rounded">
-                <p className="text-xs text-gray-600">Tertiary</p>
-                <p className="text-sm font-bold text-purple-700">{formatPercentage(data.tertiaryEnrollment)}</p>
-              </div>
-            </div>
-
-            {module.insights && module.insights.length > 0 && (
-              <div className="p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-                <p className="text-sm font-medium text-indigo-800 mb-2">Education Insights:</p>
-                <ul className="text-xs text-indigo-700 space-y-1">
-                  {module.insights.map((insight, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <div className="w-1 h-1 bg-indigo-500 rounded-full mt-1.5 flex-shrink-0"></div>
-                      {insight}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {data.nisrData && (
-              <button
-                type="button"
-                onClick={() => showSourceModal(data.nisrData)}
-                className="text-xs flex gap-2 items-center text-blue-600 hover:underline mt-2 cursor-pointer w-full justify-center p-2 border border-blue-200 rounded-lg hover:bg-blue-50"
-              >
-                <BookOpen size={16} />
-                Education statistics from NISR {data.nisrData.source} {data.nisrData.year}
+                📊 Youth unemployment: {data.nisrData.youthUnemployment}% (NISR {data.nisrData.source} {data.nisrData.year})
               </button>
             )}
           </div>
@@ -838,12 +361,12 @@ export default function IntelligenceModules({ className }: IntelligenceModulesPr
   return (
     <div className={`grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 ${className}`}>
       {error && (
-        <Card className="lg:col-span-2 xl:col-span-3 border-blue-200 bg-blue-50">
+        <Card className="lg:col-span-2 xl:col-span-3 border-red-200 bg-red-50">
           <CardHeader className="flex flex-row items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-blue-500" />
+            <AlertTriangle className="h-5 w-5 text-red-500" />
             <div>
-              <CardTitle className="text-base text-blue-700">Enhanced Intelligence Dashboard</CardTitle>
-              <CardDescription className="text-blue-600">{error}</CardDescription>
+              <CardTitle className="text-base text-red-700">Intelligence data is temporarily unavailable</CardTitle>
+              <CardDescription className="text-red-600">{error}</CardDescription>
             </div>
           </CardHeader>
         </Card>
@@ -857,30 +380,21 @@ export default function IntelligenceModules({ className }: IntelligenceModulesPr
             return <div key={module.id}>{renderOpportunityRadar(module)}</div>
           case 'performance-monitor':
             return <div key={module.id}>{renderPerformanceMonitor(module)}</div>
-          case 'population-insights':
-            return <div key={module.id}>{renderPopulationInsights(module)}</div>
-          case 'economic-growth':
-            return <div key={module.id}>{renderEconomicGrowth(module)}</div>
-          case 'education-analytics':
-            return <div key={module.id}>{renderEducationAnalytics(module)}</div>
           default:
             return null
         }
       })}
 
-      {/* Quick Actions Card */}
-      <Card className="border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors">
+      {/* Quick Actions */}
+      <Card className="border-2 border-dashed border-gray-300">
         <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Zap className="h-5 w-5" />
-            Quick Actions
-          </CardTitle>
+          <CardTitle className="text-lg">Quick Actions</CardTitle>
           <CardDescription>Common government intelligence tasks</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <Button
             variant="outline"
-            className="w-full justify-start cursor-pointer hover:bg-green-50 hover:border-green-200"
+            className="w-full justify-start cursor-pointer"
             onClick={() => {
               const reportData = modules.map((module) => {
                 if (module.type === 'resource-allocation') {
@@ -889,7 +403,6 @@ export default function IntelligenceModules({ className }: IntelligenceModulesPr
                     Metric: 'Total Budget',
                     Value: formatCurrency(module.data.totalBudget),
                     Status: `${module.data.efficiency}% efficiency`,
-                    Insights: module.insights?.[0] || 'No insights'
                   }
                 }
                 if (module.type === 'opportunity-radar') {
@@ -898,61 +411,73 @@ export default function IntelligenceModules({ className }: IntelligenceModulesPr
                     Metric: 'Total Opportunities',
                     Value: module.data.totalOpportunities,
                     Status: `${module.data.highPriorityOpportunities} high priority`,
-                    Insights: module.insights?.[0] || 'No insights'
+                  }
+                }
+                if (module.type === 'performance-monitor') {
+                  return {
+                    Section: 'Project Performance',
+                    Metric: 'Projects at Risk',
+                    Value: module.data.projectsAtRisk,
+                    Status: `${module.data.onTimeDelivery}% on-time delivery`,
                   }
                 }
                 return null
-              }).filter(Boolean)
+              }).filter((row): row is { Section: string; Metric: string; Value: any; Status: string } => row !== null)
 
-              exportToCSV(reportData as Record<string, unknown>[], 'enhanced_budget_report_' + new Date().toISOString().split('T')[0])
-              toast.success('Enhanced budget report generated', {
-                description: `Includes real NISR data insights - ${reportData.length} sections`,
+              exportToCSV(reportData as Record<string, unknown>[], 'budget_report_' + new Date().toISOString().split('T')[0])
+              toast.success('Budget report generated', {
+                description: `Executive summary exported with ${reportData.length} sections`,
               })
             }}
           >
-            <BarChart size={16} className="mr-2" />
-            Generate Enhanced Report
+            <Zap size={16} className="mr-2" />
+            Generate Budget Report
           </Button>
-          
           <Button
             variant="outline"
-            className="w-full justify-start cursor-pointer hover:bg-blue-50 hover:border-blue-200"
+            className="w-full justify-start cursor-pointer"
             onClick={() => {
               const performanceData = [
-                { 
-                  Ministry: 'ICT', 
-                  Efficiency: '92%', 
-                  Projects: 15, 
-                  AtRisk: 1, 
-                  OnTimeDelivery: '95%',
-                  GDP_Contribution: '12%',
-                  Poverty_Impact: 'High'
-                },
-                { 
-                  Ministry: 'Health', 
-                  Efficiency: '89%', 
-                  Projects: 18, 
-                  AtRisk: 2, 
-                  OnTimeDelivery: '88%',
-                  GDP_Contribution: '8%',
-                  Poverty_Impact: 'Very High'
-                },
-                // ... more ministries
+                { Ministry: 'ICT', Efficiency: '92%', Projects: 15, AtRisk: 1, OnTimeDelivery: '95%' },
+                { Ministry: 'Health', Efficiency: '89%', Projects: 18, AtRisk: 2, OnTimeDelivery: '88%' },
+                { Ministry: 'Education', Efficiency: '85%', Projects: 22, AtRisk: 3, OnTimeDelivery: '82%' },
+                { Ministry: 'Finance', Efficiency: '83%', Projects: 12, AtRisk: 1, OnTimeDelivery: '90%' },
+                { Ministry: 'Infrastructure', Efficiency: '78%', Projects: 25, AtRisk: 6, OnTimeDelivery: '72%' },
               ]
 
-              exportToCSV(performanceData, 'ministry_performance_insights_' + new Date().toISOString().split('T')[0])
-              toast.success('Ministry performance insights generated', {
-                description: 'Includes poverty impact and GDP contribution metrics',
+              exportToCSV(performanceData, 'ministry_performance_' + new Date().toISOString().split('T')[0])
+              toast.success('Ministry performance review generated', {
+                description: 'Cabinet briefing exported with 5 ministry assessments',
               })
             }}
           >
             <Users size={16} className="mr-2" />
-            Ministry Insights Review
+            Ministry Performance Review
           </Button>
-
           <Button
             variant="outline"
-            className="w-full justify-start cursor-pointer hover:bg-purple-50 hover:border-purple-200"
+            className="w-full justify-start cursor-pointer"
+            onClick={() => {
+              const projectUpdates = [
+                { Project: 'National Infrastructure Upgrade', Status: 'IN_PROGRESS', Budget: '1.5B RWF', Timeline: 'On Track', Risk: 'Medium' },
+                { Project: 'ICT Digital Transformation', Status: 'IN_PROGRESS', Budget: '800M RWF', Timeline: 'Ahead', Risk: 'Low' },
+                { Project: 'Healthcare System Modernization', Status: 'PLANNING', Budget: '1.2B RWF', Timeline: 'Delayed', Risk: 'High' },
+                { Project: 'Rural Electrification Phase 3', Status: 'IN_PROGRESS', Budget: '2.1B RWF', Timeline: 'On Track', Risk: 'Medium' },
+                { Project: 'Education Technology Rollout', Status: 'IN_PROGRESS', Budget: '600M RWF', Timeline: 'On Track', Risk: 'Low' },
+              ]
+
+              exportToCSV(projectUpdates, 'project_status_' + new Date().toISOString().split('T')[0])
+              toast.success('Project status report generated', {
+                description: `Status update for ${projectUpdates.length} strategic projects exported`,
+              })
+            }}
+          >
+            <CheckCircle size={16} className="mr-2" />
+            Project Status Update
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full justify-start cursor-pointer"
             onClick={() => {
               if (!modules.length) {
                 toast.error('No dashboard data to export')
@@ -963,119 +488,103 @@ export default function IntelligenceModules({ className }: IntelligenceModulesPr
                 Title: module.title,
                 Type: module.type,
                 Priority: module.priority,
-                LastUpdated: module.lastUpdated.toLocaleDateString(),
-                KeyInsight: module.insights?.[0] || 'No insights',
-                DataSource: 'NISR Enhanced'
+                LastUpdated: module.lastUpdated.toString(),
               }))
 
-              exportToCSV(exportData, 'intelligence_dashboard_snapshot')
+              exportToCSV(exportData, 'dashboard_modules')
               toast.success('Dashboard snapshot exported', {
-                description: `Saved ${modules.length} enhanced module records with insights`,
+                description: `Saved ${modules.length} module records to CSV`,
               })
             }}
           >
             <TrendingUp size={16} className="mr-2" />
-            Export Insights Snapshot
+            Export Dashboard Snapshot
           </Button>
         </CardContent>
       </Card>
 
-      {/* Recent Activity with Real Data */}
+      {/* Recent Activity */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Activity className="h-5 w-5" />
-            Recent Insights
-          </CardTitle>
-          <CardDescription>Latest data updates and findings</CardDescription>
+          <CardTitle className="text-lg">Recent Activity</CardTitle>
+          <CardDescription>Latest intelligence updates</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {realData.poverty && (
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Poverty rate updated</p>
-                  <p className="text-xs text-gray-500">Kigali: {realData.poverty.kigali}%, South: {realData.poverty.south}%</p>
-                </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">Budget allocation updated</p>
+                <p className="text-xs text-gray-500">2 minutes ago</p>
               </div>
-            )}
-            {realData.gdp && (
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">GDP growth data refreshed</p>
-                  <p className="text-xs text-gray-500">Latest: {realData.gdp.latest}%, Trend: {realData.gdp.trend}</p>
-                </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">New investment opportunity identified</p>
+                <p className="text-xs text-gray-500">15 minutes ago</p>
               </div>
-            )}
-            {realData.population && (
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Population insights updated</p>
-                  <p className="text-xs text-gray-500">Total: {formatNumber(realData.population.total)}</p>
-                </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">Project risk alert triggered</p>
+                <p className="text-xs text-gray-500">1 hour ago</p>
               </div>
-            )}
+            </div>
           </div>
         </CardContent>
       </Card>
-
       {/* NISR Source Detail Modal */}
       <DetailModal
         isOpen={nisrModal.isOpen}
         onClose={() => setNisrModal({ isOpen: false, data: null })}
-        title="NISR Data Source Details"
+        title="NISR Source Details"
       >
         {nisrModal.data && (
-          <div className="space-y-4 text-sm">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-gray-600">Source</p>
-                <p className="font-medium">NISR {nisrModal.data.source} {nisrModal.data.year}</p>
-              </div>
-              <div>
-                <p className="text-gray-600">Reliability</p>
-                <p className="font-medium">{nisrModal.data.reliability || 'High'}</p>
-              </div>
+          <div className="space-y-3 text-sm">
+            <div>
+              <p className="text-gray-600">Source</p>
+              <p className="font-medium">NISR {nisrModal.data.source} {nisrModal.data.year}</p>
             </div>
-            
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {typeof nisrModal.data.povertyRate !== 'undefined' && (
-                <div className="bg-red-50 p-3 rounded-lg">
+                <div>
                   <p className="text-gray-600">Poverty rate</p>
-                  <p className="font-medium text-red-700">{nisrModal.data.povertyRate}%</p>
+                  <p className="font-medium">{nisrModal.data.povertyRate}%</p>
                 </div>
               )}
               {typeof nisrModal.data.gdpGrowth !== 'undefined' && (
-                <div className="bg-green-50 p-3 rounded-lg">
+                <div>
                   <p className="text-gray-600">GDP growth</p>
-                  <p className="font-medium text-green-700">{nisrModal.data.gdpGrowth}%</p>
+                  <p className="font-medium">{nisrModal.data.gdpGrowth}%</p>
                 </div>
               )}
               {typeof nisrModal.data.youthUnemployment !== 'undefined' && (
-                <div className="bg-yellow-50 p-3 rounded-lg">
+                <div>
                   <p className="text-gray-600">Youth unemployment</p>
-                  <p className="font-medium text-yellow-700">{nisrModal.data.youthUnemployment}%</p>
+                  <p className="font-medium">{nisrModal.data.youthUnemployment}%</p>
                 </div>
               )}
             </div>
-
-            <div>
-              <p className="text-gray-600">Last updated</p>
-              <p className="font-medium">{new Date().toLocaleString()}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <p className="text-gray-600">Reliability</p>
+                <p className="font-medium">{nisrModal.data.reliability ?? 'High'}</p>
+              </div>
+              <div>
+                <p className="text-gray-600">Last updated</p>
+                <p className="font-medium">{new Date().toLocaleString()}</p>
+              </div>
             </div>
-            
             {nisrModal.data.url && (
               <a
                 href={nisrModal.data.url}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 text-blue-600 hover:underline"
+                className="text-blue-600 hover:underline inline-block"
               >
-                <ExternalLink size={14} />
-                Open original dataset
+                Open dataset
               </a>
             )}
           </div>
@@ -1085,43 +594,6 @@ export default function IntelligenceModules({ className }: IntelligenceModulesPr
   )
 }
 
-// Add missing icon component
-function Activity(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-    </svg>
-  )
-}
-
-function ExternalLink(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-      <polyline points="15 3 21 3 21 9" />
-      <line x1="10" y1="14" x2="21" y2="3" />
-    </svg>
-  )
-}
+// NISR Source Modal
+// Render at root to avoid layout shifts
+/* Modal mount */

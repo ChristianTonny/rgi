@@ -19,7 +19,7 @@ export function DetailModal({ isOpen, onClose, title, children, maxWidth = 'xl' 
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div
-     className="absolute inset-0 backdrop-blur-sm bg-black/20"
+        className="absolute inset-0 bg-black bg-opacity-50"
         onClick={onClose}
       />
 
