@@ -230,10 +230,21 @@ All integration tests pass:
 # Start server
 npm run server
 
-# Test search (in another terminal)
-curl -H "Authorization: Bearer <token>" \
+# Get authentication token (in another terminal)
+TOKEN=$(curl -s -X POST http://localhost:3001/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"minister@gov.rw","password":"password123"}' | jq -r '.token')
+
+# Test search with token
+curl -H "Authorization: Bearer $TOKEN" \
   "http://localhost:3001/api/search?q=poverty&limit=5"
 ```
+
+**Test User Credentials:**
+- Email: `minister@gov.rw`
+- Password: `password123`
+
+For more details on authentication, see [Authentication Documentation](../server/routes/auth.js).
 
 ## Performance
 
@@ -289,7 +300,13 @@ To add new data to the search index:
 Check search statistics:
 
 ```bash
-curl -H "Authorization: Bearer <token>" \
+# First, get authentication token
+TOKEN=$(curl -s -X POST http://localhost:3001/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"minister@gov.rw","password":"password123"}' | jq -r '.token')
+
+# Then check stats
+curl -H "Authorization: Bearer $TOKEN" \
   http://localhost:3001/api/search/stats
 ```
 
