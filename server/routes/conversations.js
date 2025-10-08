@@ -1,5 +1,6 @@
 const express = require('express');
 const { authenticateToken } = require('./auth');
+const { trackAIUsage } = require('../middleware/usage-tracker');
 
 const router = express.Router();
 
@@ -155,7 +156,7 @@ router.get('/:id', authenticateToken, (req, res) => {
  * POST /api/conversations/:id/messages
  * Add a new message to a conversation
  */
-router.post('/:id/messages', authenticateToken, (req, res) => {
+router.post('/:id/messages', authenticateToken, trackAIUsage('chat'), (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;

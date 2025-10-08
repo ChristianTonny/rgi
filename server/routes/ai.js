@@ -1,5 +1,6 @@
 const express = require('express')
 const { authenticateToken } = require('./auth')
+const { trackAIUsage } = require('../middleware/usage-tracker')
 
 const router = express.Router()
 
@@ -103,7 +104,7 @@ function getRandomResponse(responses) {
   return responses[Math.floor(Math.random() * responses.length)]
 }
 
-router.post('/chat', authenticateToken, (req, res) => {
+router.post('/chat', authenticateToken, trackAIUsage('chat'), (req, res) => {
   const { message, conversationId } = req.body
 
   if (!message || message.trim().length === 0) {
