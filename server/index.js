@@ -80,6 +80,12 @@ app.get('/health', (req, res) => {
 });
 
 // API Routes
+const conversationsRouter = require('./routes/conversations');
+const quickActionsRouter = require('./routes/quick-actions');
+
+// Share insights between conversations and quick-actions
+conversationsRouter.setSharedInsights(quickActionsRouter.insights);
+
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/intelligence', require('./routes/intelligence'));
 app.use('/api/projects', require('./routes/projects'));
@@ -89,11 +95,11 @@ app.use('/api/ai', require('./routes/ai'));
 app.use('/api/search', require('./routes/search'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/catalog', require('./routes/catalog'));
-app.use('/api/conversations', require('./routes/conversations'));
+app.use('/api/conversations', conversationsRouter);
 app.use('/api/usage', require('./routes/usage'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/activity', require('./routes/activity'));
-app.use('/api/quick-actions', require('./routes/quick-actions'));
+app.use('/api/quick-actions', quickActionsRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -4,6 +4,9 @@ const { logActivity, ACTIVITY_TYPES } = require('./activity');
 
 const router = express.Router();
 
+// In-memory insights storage (shared with conversations)
+const insights = new Map();
+
 /**
  * POST /api/quick-actions/export-report
  * Export dashboard report
@@ -66,7 +69,7 @@ router.post('/generate-insights', authenticateToken, async (req, res) => {
     const insightId = `insight_${Date.now()}`;
     
     // Generate insights based on dashboard data
-    const insights = {
+    const insightsData = {
       id: insightId,
       conversationId,
       title: 'Dashboard Intelligence Insights',
@@ -98,8 +101,23 @@ router.post('/generate-insights', authenticateToken, async (req, res) => {
         }
       ],
       generatedAt: new Date().toISOString(),
-      source
+      source,
+      dataSources: [
+        'NISR EICV7 (Poverty Survey)',
+        'NISR RLFS (Labor Force Survey)',
+        'NISR National Accounts (GDP Data)',
+        'Ministry Budget Reports',
+        'Project Performance Metrics'
+      ],
+      relatedProjects: [
+        'National Infrastructure Upgrade',
+        'ICT Digital Transformation',
+        'Healthcare Modernization'
+      ]
     };
+    
+    // Store the insight in memory
+    insights.set(insightId, insightsData);
     
     // Log activity
     logActivity({
@@ -109,13 +127,14 @@ router.post('/generate-insights', authenticateToken, async (req, res) => {
       description: 'Generated 4 strategic insights from dashboard data',
       entityType: 'insight',
       entityId: insightId,
-      metadata: { source, findingsCount: insights.findings.length }
+      metadata: { source, findingsCount: insightsData.findings.length }
     });
     
     res.json({
       success: true,
-      data: insights,
-      message: 'Insights generated successfully'
+      data: insightsData,
+      message: 'Insights generated successfully',
+      navigationUrl: `/intelligence?subtab=generated-insights&insight=${insightId}`
     });
   } catch (error) {
     console.error('Error generating insights:', error);
@@ -189,6 +208,36 @@ router.post('/schedule-briefing', authenticateToken, (req, res) => {
   }
 });
 
+/**
+ * GET /api/quick-actions/insights/:insightId
+ * Get a specific insight by ID
+ */
+router.get('/insights/:insightId', authenticateToken, (req, res) => {
+  try {
+    const { insightId } = req.params;
+    
+    const insight = insights.get(insightId);
+    
+    if (!insight) {
+      return res.status(404).json({
+        success: false,
+        error: 'Insight not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: insight
+    });
+  } catch (error) {
+    console.error('Error fetching insight:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch insight'
+    });
+  }
+});
+
 // Helper functions
 
 function generateTrendData(label, months, min, max) {
@@ -230,3 +279,4 @@ function calculateNextRun(frequency) {
 }
 
 module.exports = router;
+module.exports.insights = insights;

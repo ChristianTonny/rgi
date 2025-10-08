@@ -8,6 +8,14 @@ const router = express.Router();
 const conversations = new Map();
 const messages = new Map();
 
+// Shared insights storage - will be set by quick-actions module
+let sharedInsights = null;
+
+// Function to set shared insights from quick-actions
+function setSharedInsights(insightsMap) {
+  sharedInsights = insightsMap;
+}
+
 // Generate unique ID
 function generateId() {
   return `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -322,6 +330,141 @@ router.delete('/:id', authenticateToken, (req, res) => {
 });
 
 /**
+ * POST /api/conversations/from-insight/:insightId
+ * Create a conversation from an insight (Apply Lessons functionality)
+ */
+router.post('/from-insight/:insightId', authenticateToken, (req, res) => {
+  try {
+    const { insightId } = req.params;
+    const userId = req.user.id;
+    
+    // Get insight from shared storage
+    const insights = sharedInsights || new Map();
+    const insight = insights.get(insightId);
+    
+    if (!insight) {
+      return res.status(404).json({
+        success: false,
+        error: 'Insight not found'
+      });
+    }
+    
+    const conversationId = generateId();
+    const now = new Date().toISOString();
+    
+    const conversation = {
+      id: conversationId,
+      userId,
+      title: `Applying: ${insight.title}`,
+      createdAt: now,
+      updatedAt: now,
+      lastMessageAt: now,
+      isArchived: false,
+      context: {
+        type: 'lesson_application',
+        insightId: insight.id,
+        insight: insight
+      }
+    };
+    
+    conversations.set(conversationId, conversation);
+    
+    // Create initial AI message with recommendations
+    const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const aiMessage = {
+      id: messageId,
+      conversationId,
+      role: 'assistant',
+      content: generateLessonApplicationResponse(insight),
+      metadata: {
+        model: 'rwanda-gov-ai',
+        tokensUsed: 250,
+        insightId: insight.id
+      },
+      createdAt: now
+    };
+    
+    if (!messages.has(conversationId)) {
+      messages.set(conversationId, []);
+    }
+    messages.get(conversationId).push(aiMessage);
+    
+    res.status(201).json({
+      success: true,
+      data: {
+        conversation,
+        initialMessage: aiMessage
+      }
+    });
+  } catch (error) {
+    console.error('Error creating conversation from insight:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create conversation from insight'
+    });
+  }
+});
+
+/**
+ * GET /api/conversations/insights/:insightId
+ * Get a specific insight by ID
+ */
+router.get('/insights/:insightId', authenticateToken, (req, res) => {
+  try {
+    const { insightId } = req.params;
+    
+    const insights = sharedInsights || new Map();
+    const insight = insights.get(insightId);
+    
+    if (!insight) {
+      return res.status(404).json({
+        success: false,
+        error: 'Insight not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: insight
+    });
+  } catch (error) {
+    console.error('Error fetching insight:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch insight'
+    });
+  }
+});
+
+/**
+ * POST /api/conversations/insights
+ * Store a generated insight (for backwards compatibility)
+ */
+router.post('/insights', authenticateToken, (req, res) => {
+  try {
+    const { insight } = req.body;
+    
+    const insights = sharedInsights || new Map();
+    insights.set(insight.id, {
+      ...insight,
+      userId: req.user.id,
+      storedAt: new Date().toISOString()
+    });
+    
+    res.status(201).json({
+      success: true,
+      data: insight
+    });
+  } catch (error) {
+    console.error('Error storing insight:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to store insight'
+    });
+  }
+});
+
+/**
  * Generate AI response based on user message and context
  * This is a simplified version - in production, this would call actual AI service
  */
@@ -366,4 +509,40 @@ function generateAIResponse(userMessage, context = {}) {
   return `I'm here to help you analyze Rwanda's government data and provide intelligence insights. I can assist with:\n\n- Economic indicators (poverty, employment, GDP)\n- Project portfolio analysis\n- Budget and resource allocation\n- Investment opportunities\n- Policy recommendations\n\nWhat specific information would you like to explore?`;
 }
 
+/**
+ * Generate lesson application response based on insight
+ */
+function generateLessonApplicationResponse(insight) {
+  let response = `I've analyzed the insight: "${insight.title}"\n\n**Summary:**\n${insight.summary}\n\n**Actionable Recommendations:**\n\n`;
+  
+  if (insight.findings && insight.findings.length > 0) {
+    insight.findings.forEach((finding, index) => {
+      response += `${index + 1}. **${finding.category}** (Priority: ${finding.priority})\n`;
+      response += `   - Insight: ${finding.insight}\n`;
+      response += `   - Recommendation: ${finding.recommendation}\n\n`;
+    });
+  }
+  
+  response += `**Implementation Strategy:**\n\n`;
+  response += `1. **Immediate Actions (Week 1)**\n`;
+  response += `   - Review current practices against identified insights\n`;
+  response += `   - Assign ownership for each recommendation\n`;
+  response += `   - Schedule stakeholder meetings\n\n`;
+  
+  response += `2. **Short-term Goals (Month 1)**\n`;
+  response += `   - Implement high-priority recommendations\n`;
+  response += `   - Establish monitoring metrics\n`;
+  response += `   - Document progress and challenges\n\n`;
+  
+  response += `3. **Success Metrics**\n`;
+  response += `   - Track KPI improvements\n`;
+  response += `   - Measure efficiency gains\n`;
+  response += `   - Document lessons learned\n\n`;
+  
+  response += `Which specific recommendation would you like to explore further, or would you like help creating an implementation plan?`;
+  
+  return response;
+}
+
 module.exports = router;
+module.exports.setSharedInsights = setSharedInsights;
