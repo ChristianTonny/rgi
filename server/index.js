@@ -145,17 +145,23 @@ const server = app.listen(PORT, async () => {
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
 
-  // Load NISR data on startup
+  // Load NISR data and initialize search index on startup
   try {
     const { loadAllNISRData } = require('./utils/nisr-loader');
     const { loadCatalog } = require('./utils/catalog-loader');
+    const { initializeSearchIndex } = require('./utils/search-indexer');
 
     await Promise.all([
       loadAllNISRData(),
       loadCatalog(),
     ]);
+    
+    // Initialize search index after data is loaded
+    await initializeSearchIndex();
+    
+    console.log('✅ All data loaded and search index initialized');
   } catch (error) {
-    console.error('Failed to load NISR data on startup:', error);
+    console.error('Failed to load data or initialize search index on startup:', error);
   }
 });
 

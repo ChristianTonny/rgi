@@ -1,118 +1,100 @@
 const express = require('express')
 const { authenticateToken } = require('./auth')
+const { search, getIndexStats } = require('../utils/search-indexer')
 
 const router = express.Router()
 
-const mockSearchData = [
-  {
-    id: 'proj-1',
-    type: 'PROJECT',
-    title: 'National Infrastructure Upgrade',
-    content: 'Modernizing road and bridge infrastructure across all provinces',
-    source: { name: 'Ministry of Infrastructure' },
-    metadata: { budget: 1_500_000_000, status: 'IN_PROGRESS' },
-  },
-  {
-    id: 'proj-2',
-    type: 'PROJECT',
-    title: 'ICT Digital Transformation Initiative',
-    content: 'Implementing e-governance platforms and digital services for citizens',
-    source: { name: 'Ministry of ICT' },
-    metadata: { budget: 800_000_000, status: 'IN_PROGRESS' },
-  },
-  {
-    id: 'proj-3',
-    type: 'PROJECT',
-    title: 'Healthcare System Modernization',
-    content: 'Upgrading healthcare facilities and implementing electronic health records',
-    source: { name: 'Ministry of Health' },
-    metadata: { budget: 1_200_000_000, status: 'PLANNING' },
-  },
-  {
-    id: 'opp-1',
-    type: 'OPPORTUNITY',
-    title: 'Renewable Energy Investment - Solar Parks',
-    content: 'Investment opportunity in 50MW solar park development in Eastern Province',
-    source: { name: 'Rwanda Development Board' },
-    metadata: { investmentRange: '500M-1B RWF', sector: 'Energy', riskLevel: 'MEDIUM' },
-  },
-  {
-    id: 'opp-2',
-    type: 'OPPORTUNITY',
-    title: 'Agricultural Processing Plant',
-    content: 'Coffee and tea processing facility expansion opportunity',
-    source: { name: 'Ministry of Agriculture' },
-    metadata: { investmentRange: '200M-500M RWF', sector: 'Agriculture', riskLevel: 'LOW' },
-  },
-  {
-    id: 'opp-3',
-    type: 'OPPORTUNITY',
-    title: 'Tourism Infrastructure Development',
-    content: 'Eco-tourism lodges and visitor centers in national parks',
-    source: { name: 'Rwanda Development Board' },
-    metadata: { investmentRange: '1B-2B RWF', sector: 'Tourism', riskLevel: 'MEDIUM' },
-  },
-  {
-    id: 'insight-1',
-    type: 'INSIGHT',
-    title: 'Budget Efficiency Analysis Q4 2024',
-    content: 'Analysis shows 12% improvement in budget utilization across ministries',
-    source: { name: 'National Intelligence Dashboard' },
-    metadata: { category: 'BUDGET', confidence: 0.92 },
-  },
-  {
-    id: 'insight-2',
-    type: 'INSIGHT',
-    title: 'Project Risk Assessment - Infrastructure',
-    content: 'Three infrastructure projects require immediate attention due to timeline delays',
-    source: { name: 'National Intelligence Dashboard' },
-    metadata: { category: 'RISK', confidence: 0.88 },
-  },
-  {
-    id: 'policy-1',
-    type: 'POLICY',
-    title: 'Digital Economy Policy Framework 2024',
-    content: 'New framework for digital economy growth and innovation support',
-    source: { name: 'Ministry of ICT' },
-    metadata: { status: 'ACTIVE', effectiveDate: '2024-01-01' },
-  },
-  {
-    id: 'policy-2',
-    type: 'POLICY',
-      title: 'Green Growth Strategy',
-    content: 'National strategy for sustainable development and environmental protection',
-    source: { name: 'Ministry of Environment' },
-    metadata: { status: 'ACTIVE', effectiveDate: '2024-03-01' },
-  },
-]
-
+/**
+ * GET /api/search
+ * Search across all indexed data sources using FlexSearch
+ * 
+ * Query params:
+ * - q: Search query (required, min 2 chars)
+ * - limit: Max results to return (default: 10)
+ * - type: Filter by type (PROJECT, OPPORTUNITY, POLICY, INSIGHT, DATA, MINISTRY)
+ * - sector: Filter by sector
+ * - dateFrom: Filter by date range start (ISO date)
+ * - dateTo: Filter by date range end (ISO date)
+ */
 router.get('/', authenticateToken, (req, res) => {
-  const { q, limit = 10 } = req.query
+  const { 
+    q, 
+    limit = 10, 
+    type = null,
+    sector = null,
+    dateFrom = null,
+    dateTo = null
+  } = req.query
 
+  // Validate query
   if (!q || q.trim().length < 2) {
     return res.json({
       success: true,
       data: [],
-      message: 'Query too short',
+      message: 'Query too short (minimum 2 characters)',
+      total: 0,
+      query: q || ''
     })
   }
 
-  const query = q.toLowerCase().trim()
+  try {
+    // Build filter options
+    const options = {
+      limit: parseInt(limit, 10) || 10,
+      type,
+      sector
+    }
 
-  const results = mockSearchData.filter((item) => {
-    const titleMatch = item.title.toLowerCase().includes(query)
-    const contentMatch = item.content.toLowerCase().includes(query)
-    return titleMatch || contentMatch
-  })
+    // Add date range if provided
+    if (dateFrom || dateTo) {
+      options.dateRange = {
+        start: dateFrom,
+        end: dateTo
+      }
+    }
 
-  const limitedResults = results.slice(0, parseInt(limit, 10))
+    // Perform search using FlexSearch indexer
+    const results = search(q.trim(), options)
 
-  return res.json({
-    success: true,
-    data: limitedResults,
-    total: results.length,
-    query: q,
-  })
+    return res.json({
+      success: true,
+      data: results,
+      total: results.length,
+      query: q,
+      filters: {
+        type,
+        sector,
+        dateRange: options.dateRange
+      }
+    })
+  } catch (error) {
+    console.error('Search error:', error)
+    return res.status(500).json({
+      success: false,
+      error: 'Search failed',
+      message: error.message
+    })
+  }
+})
+
+/**
+ * GET /api/search/stats
+ * Get statistics about indexed search data
+ */
+router.get('/stats', authenticateToken, (req, res) => {
+  try {
+    const stats = getIndexStats()
+    return res.json({
+      success: true,
+      data: stats
+    })
+  } catch (error) {
+    console.error('Error getting search stats:', error)
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to get search statistics'
+    })
+  }
 })
 
 module.exports = router
