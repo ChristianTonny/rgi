@@ -92,6 +92,8 @@ app.use('/api/catalog', require('./routes/catalog'));
 app.use('/api/conversations', require('./routes/conversations'));
 app.use('/api/usage', require('./routes/usage'));
 app.use('/api/dashboard', require('./routes/dashboard'));
+app.use('/api/activity', require('./routes/activity'));
+app.use('/api/quick-actions', require('./routes/quick-actions'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
