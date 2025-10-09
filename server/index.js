@@ -101,6 +101,7 @@ app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/activity', require('./routes/activity'));
 app.use('/api/quick-actions', quickActionsRouter);
 app.use('/api/charts', require('./routes/charts'));
+app.use('/api/briefings', require('./routes/briefing'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
