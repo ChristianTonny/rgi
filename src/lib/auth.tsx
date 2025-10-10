@@ -3,31 +3,12 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User } from '@/types'
 
-const rawApiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.trim()
-
-const API_BASE_URL = (() => {
-  if (rawApiBaseUrl) {
-    return rawApiBaseUrl.replace(/\/$/, '')
-  }
-
-  if (process.env.NODE_ENV === 'development') {
-    return 'http://localhost:3001'
-  }
-
-  return ''
-})()
-
-export const buildApiUrl = (path: string) => {
-  return API_BASE_URL ? `${API_BASE_URL}${path}` : path
-}
-
 interface AuthContextType {
   user: User | null
-  token: string | null
+  isLoading: boolean
   login: (email: string, password: string) => Promise<{ success: boolean; message: string }>
   logout: () => void
-  isLoading: boolean
-  hasPermission: (resource: string, action: string) => boolean
+  hasPermission: () => boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -44,109 +25,92 @@ interface AuthProviderProps {
   children: React.ReactNode
 }
 
+const DEMO_USERS: Record<string, User> = {
+  'minister@gov.rw': {
+    id: '1',
+    email: 'minister@gov.rw',
+    name: 'Hon. Minister of ICT',
+    role: 'MINISTER',
+    ministry: 'ICT',
+    permissions: ['READ', 'UPDATE'],
+    createdAt: new Date(),
+    isActive: true,
+  },
+  'ps@gov.rw': {
+    id: '2',
+    email: 'ps@gov.rw',
+    name: 'Permanent Secretary',
+    role: 'PERMANENT_SECRETARY',
+    ministry: 'Finance',
+    permissions: ['READ', 'UPDATE'],
+    createdAt: new Date(),
+    isActive: true,
+  },
+}
+
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
-  const [token, setToken] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
 
-  // Initialize auth state from localStorage
   useEffect(() => {
-    const savedToken = localStorage.getItem('gov-auth-token')
-    const savedUser = localStorage.getItem('gov-auth-user')
-    
-    if (savedToken && savedUser) {
-      try {
-        setToken(savedToken)
-        setUser(JSON.parse(savedUser))
-      } catch (error) {
-        console.error('Error parsing saved user data:', error)
-        localStorage.removeItem('gov-auth-token')
-        localStorage.removeItem('gov-auth-user')
-      }
-    }
-    setIsLoading(false)
-  }, [])
-
-  const login = async (email: string, password: string) => {
     try {
-      const response = await fetch(buildApiUrl('/api/auth/login'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      })
-
-      const contentType = response.headers.get('content-type') ?? ''
-      const isJson = contentType.includes('application/json')
-      const data = isJson ? await response.json() : null
-
-      if (!response.ok) {
-        const message = data?.message ?? 'Unable to reach authentication service. Ensure the API server is running.'
-        return { success: false, message }
-      }
-
-      if (data?.success) {
-        setToken(data.token)
-        setUser(data.user)
-        localStorage.setItem('gov-auth-token', data.token)
-        localStorage.setItem('gov-auth-user', JSON.stringify(data.user))
-        return { success: true, message: 'Login successful' }
-      } else {
-        return { success: false, message: data.message || 'Login failed' }
+      const raw = typeof window !== 'undefined' ? window.localStorage.getItem('demo-user') : null
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        setUser({ ...parsed, createdAt: new Date(parsed.createdAt) })
       }
     } catch (error) {
-      console.error('Login error:', error)
+      console.error('Failed to restore demo session', error)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (user) {
+      const serialisableUser = {
+        ...user,
+        createdAt: user.createdAt instanceof Date ? user.createdAt.toISOString() : user.createdAt,
+      }
+      window.localStorage.setItem('demo-user', JSON.stringify(serialisableUser))
+    } else {
+      window.localStorage.removeItem('demo-user')
+    }
+  }, [user])
+
+  const login = async (email: string, password: string) => {
+    setIsLoading(true)
+    await new Promise((resolve) => setTimeout(resolve, 400))
+
+    const normalizedEmail = email.trim().toLowerCase()
+    const match = DEMO_USERS[normalizedEmail]
+
+    if (!match || password !== 'password123') {
+      setIsLoading(false)
       return {
         success: false,
-        message: 'Cannot reach authentication service. Start the Express API (npm run server:dev) or set NEXT_PUBLIC_API_BASE_URL.',
+        message: 'Invalid demo credentials. Use minister@gov.rw or ps@gov.rw with password123.',
       }
     }
+
+    setUser({ ...match, createdAt: new Date() })
+    setIsLoading(false)
+    return { success: true, message: 'Logged in with demo account' }
   }
 
   const logout = () => {
     setUser(null)
-    setToken(null)
-    localStorage.removeItem('gov-auth-token')
-    localStorage.removeItem('gov-auth-user')
-    
-    // Call logout endpoint
-    if (token) {
-      fetch(buildApiUrl('/api/auth/logout'), {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }).catch(console.error)
-    }
   }
 
-  const hasPermission = (resource: string, action: string): boolean => {
-    if (!user) return false
-    
-    // Admin has all permissions
-    if (user.role === 'ADMIN') return true
-    
-    // Check specific permissions
-    return user.permissions.some(
-      permission => {
-        if (typeof permission === 'string') {
-          return permission === `${resource}:${action}` || permission === action
-        }
+  const hasPermission = () => true
 
-        return permission.resource === resource && permission.action === action
-      }
-    )
-  }
-
-  const value: AuthContextType = {
+  const contextValue: AuthContextType = {
     user,
-    token,
+    isLoading,
     login,
     logout,
-    isLoading,
     hasPermission,
   }
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
 }
+

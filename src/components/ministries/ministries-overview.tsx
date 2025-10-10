@@ -118,6 +118,13 @@ export default function MinistriesOverview({ className }: MinistriesOverviewProp
   const [ministries, setMinistries] = useState<MinistryPerformance[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedMinistry, setSelectedMinistry] = useState<MinistryPerformance | null>(null)
+  const [isBriefingModalOpen, setIsBriefingModalOpen] = useState(false)
+  const [isGeneratingBriefing, setIsGeneratingBriefing] = useState(false)
+  const [briefingProgress, setBriefingProgress] = useState(0)
+  const [briefingStatus, setBriefingStatus] = useState('')
+  const [briefingReady, setBriefingReady] = useState(false)
+  const [ministryBriefTarget, setMinistryBriefTarget] = useState<MinistryPerformance | null>(null)
+  const [isMinistryBriefOpen, setIsMinistryBriefOpen] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -150,6 +157,117 @@ export default function MinistriesOverview({ className }: MinistriesOverviewProp
       topImpact
     }
   }, [ministries])
+
+  const handleGenerateBriefing = async () => {
+    setIsBriefingModalOpen(true)
+    setIsGeneratingBriefing(true)
+    setBriefingProgress(0)
+    setBriefingReady(false)
+
+    // Progressive loading simulation
+    const steps = [
+      { status: 'Collecting cross-ministry performance data...', progress: 15, delay: 800 },
+      { status: 'Analyzing budget execution and flagship initiatives...', progress: 35, delay: 1000 },
+      { status: 'Generating AI-powered insights and recommendations...', progress: 60, delay: 1200 },
+      { status: 'Creating executive visualizations and charts...', progress: 80, delay: 900 },
+      { status: 'Finalizing Cabinet briefing document...', progress: 95, delay: 700 },
+    ]
+
+    for (const step of steps) {
+      setBriefingStatus(step.status)
+      setBriefingProgress(step.progress)
+      await new Promise(resolve => setTimeout(resolve, step.delay))
+    }
+
+    setBriefingProgress(100)
+    setBriefingStatus('Briefing ready!')
+    setBriefingReady(true)
+    setIsGeneratingBriefing(false)
+    toast.success('Executive briefing generated successfully!')
+  }
+
+  const downloadBriefing = () => {
+    const lines = [
+      'EXECUTIVE CABINET BRIEFING',
+      'Cross-Ministry Performance Overview',
+      `Generated: ${new Date().toLocaleString()}`,
+      '',
+      '═'.repeat(60),
+      '',
+      'EXECUTIVE SUMMARY',
+      '─'.repeat(60),
+      `Total Portfolio Budget: ${formatCurrency(summary.totalBudget)}`,
+      `Average Operational Efficiency: ${formatPercentage(summary.avgEfficiency * 100)}`,
+      `Active Flagship Initiatives: ${summary.flagshipPrograms} programs`,
+      `Top Performing Ministry: ${summary.topImpact?.name || 'N/A'} (Impact Score: ${summary.topImpact?.impactScore}/100)`,
+      '',
+      'MINISTRY-BY-MINISTRY PERFORMANCE',
+      '─'.repeat(60),
+      ''
+    ]
+
+    ministries.forEach(ministry => {
+      lines.push(`${ministry.name}`)
+      lines.push(`  Leadership: ${ministry.minister}`)
+      lines.push(`  Budget Allocation: ${formatCurrency(ministry.budget)}`)
+      lines.push(`  Utilisation Rate: ${formatPercentage(ministry.utilisation * 100)}`)
+      lines.push(`  Efficiency Score: ${formatPercentage(ministry.efficiency * 100)}`)
+      lines.push(`  Flagship Projects: ${ministry.flagshipProjects}`)
+      lines.push(`  Impact Score: ${ministry.impactScore}/100`)
+      lines.push(`  Priority Initiatives:`)
+      ministry.priorityInitiatives.forEach(initiative => {
+        lines.push(`    • ${initiative}`)
+      })
+      lines.push('')
+    })
+
+    lines.push('═'.repeat(60))
+    lines.push('RECOMMENDATIONS FOR CABINET ACTION')
+    lines.push('─'.repeat(60))
+    lines.push('1. Accelerate flagship initiative delivery in low-performing portfolios')
+    lines.push('2. Reallocate unutilized budgets to high-impact ministries before fiscal year-end')
+    lines.push('3. Deploy cross-ministry taskforces for strategic coordination')
+    lines.push('4. Schedule quarterly Cabinet reviews to track progress on Vision 2050 alignment')
+    lines.push('')
+    lines.push('End of Briefing')
+
+    const content = lines.join('\n')
+    const blob = new Blob([content], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `Cabinet_Briefing_${new Date().toISOString().split('T')[0]}.txt`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+    toast.success('Cabinet briefing downloaded')
+  }
+
+  const handleMinistryBrief = (ministry: MinistryPerformance) => {
+    setMinistryBriefTarget(ministry)
+    setIsMinistryBriefOpen(true)
+  }
+
+  const handleExportMinistryKPI = (ministry: MinistryPerformance) => {
+    const exportData = [{
+      Ministry: ministry.name,
+      Minister: ministry.minister,
+      Budget: ministry.budget,
+      'Budget Utilisation': `${formatPercentage(ministry.utilisation * 100)}`,
+      'Operational Efficiency': `${formatPercentage(ministry.efficiency * 100)}`,
+      'Flagship Projects': ministry.flagshipProjects,
+      'Impact Score': ministry.impactScore,
+      'Priority Initiative 1': ministry.priorityInitiatives[0] || '',
+      'Priority Initiative 2': ministry.priorityInitiatives[1] || '',
+      'Priority Initiative 3': ministry.priorityInitiatives[2] || '',
+    }]
+
+    exportToCSV(exportData, `${ministry.id}_kpi_snapshot`)
+    toast.success('Ministry KPI exported', {
+      description: `${ministry.name} performance metrics downloaded`
+    })
+  }
 
   if (isLoading) {
     return (
@@ -190,11 +308,7 @@ export default function MinistriesOverview({ className }: MinistriesOverviewProp
           <Button
             variant="government"
             className="flex items-center gap-2"
-            onClick={() => {
-              toast.success('Briefing generation started', {
-                description: 'Compiling cross-ministry insights for Cabinet review.',
-              })
-            }}
+            onClick={handleGenerateBriefing}
           >
             <Sparkles size={16} />
             Generate Briefing
@@ -444,11 +558,217 @@ export default function MinistriesOverview({ className }: MinistriesOverviewProp
             </div>
 
             <div className="flex flex-col gap-3 border-t border-gray-200 pt-4 md:flex-row">
-              <Button variant="government" className="flex-1">
+              <Button 
+                variant="government" 
+                className="flex-1"
+                onClick={() => {
+                  setSelectedMinistry(null)
+                  handleMinistryBrief(selectedMinistry)
+                }}
+              >
                 Open Ministry Brief
               </Button>
-              <Button variant="outline" className="flex-1">
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => handleExportMinistryKPI(selectedMinistry)}
+              >
                 Export KPI Snapshot
+              </Button>
+            </div>
+          </div>
+        )}
+      </DetailModal>
+
+      {/* Generate Briefing Modal */}
+      <DetailModal
+        isOpen={isBriefingModalOpen}
+        onClose={() => {
+          if (!isGeneratingBriefing) {
+            setIsBriefingModalOpen(false)
+            setBriefingReady(false)
+          }
+        }}
+        title="Generate Cabinet Briefing"
+        maxWidth="xl"
+      >
+        <div className="space-y-6">
+          {isGeneratingBriefing && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+                <p className="text-sm text-gray-700">{briefingStatus}</p>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3">
+                <div
+                  className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                  style={{ width: `${briefingProgress}%` }}
+                />
+              </div>
+              <p className="text-xs text-gray-500 text-center">{briefingProgress}% complete</p>
+            </div>
+          )}
+
+          {briefingReady && (
+            <div className="space-y-4">
+              <div className="rounded-lg bg-green-50 border border-green-200 p-4">
+                <div className="flex items-center gap-2 text-green-700 mb-2">
+                  <Sparkles size={20} />
+                  <p className="font-semibold">Briefing Generated Successfully!</p>
+                </div>
+                <p className="text-sm text-green-600">
+                  Your cross-ministry executive briefing is ready for Cabinet review. The document includes
+                  performance metrics, flagship initiative updates, and strategic recommendations.
+                </p>
+              </div>
+
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-6 space-y-4">
+                <div className="border-b border-gray-300 pb-3">
+                  <h3 className="text-lg font-bold text-gray-900">EXECUTIVE CABINET BRIEFING</h3>
+                  <p className="text-sm text-gray-600">Cross-Ministry Performance Overview</p>
+                  <p className="text-xs text-gray-500">{new Date().toLocaleString()}</p>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase">Executive Summary</p>
+                    <div className="mt-2 space-y-1 text-sm text-gray-700">
+                      <p>• Total Portfolio Budget: {formatCurrency(summary.totalBudget)}</p>
+                      <p>• Average Efficiency: {formatPercentage(summary.avgEfficiency * 100)}</p>
+                      <p>• Flagship Initiatives: {summary.flagshipPrograms} programs</p>
+                      <p>• Top Ministry: {summary.topImpact?.name} (Score: {summary.topImpact?.impactScore}/100)</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase">Key Recommendations</p>
+                    <ul className="mt-2 space-y-1 text-sm text-gray-700 list-disc list-inside">
+                      <li>Accelerate flagship delivery in underperforming portfolios</li>
+                      <li>Reallocate unutilized budgets before fiscal year-end</li>
+                      <li>Deploy cross-ministry taskforces for strategic coordination</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <Button variant="government" onClick={downloadBriefing} className="flex-1">
+                  Download Full Briefing
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setIsBriefingModalOpen(false)
+                    setBriefingReady(false)
+                  }}
+                  className="flex-1"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </DetailModal>
+
+      {/* Ministry Brief Modal */}
+      <DetailModal
+        isOpen={isMinistryBriefOpen}
+        onClose={() => setIsMinistryBriefOpen(false)}
+        title={`Ministry Brief: ${ministryBriefTarget?.name || ''}`}
+        maxWidth="2xl"
+      >
+        {ministryBriefTarget && (
+          <div className="space-y-6">
+            <div className="rounded-lg bg-blue-50 border border-blue-200 p-4">
+              <h3 className="font-semibold text-blue-900 mb-2">Executive Overview</h3>
+              <p className="text-sm text-blue-700">
+                {ministryBriefTarget.name} is leading {ministryBriefTarget.flagshipProjects} flagship initiatives 
+                with an annual budget of {formatCurrency(ministryBriefTarget.budget)}. Current budget utilisation 
+                stands at {formatPercentage(ministryBriefTarget.utilisation * 100)} with an operational efficiency 
+                rating of {formatPercentage(ministryBriefTarget.efficiency * 100)}.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-lg border border-gray-200 p-4">
+                <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Leadership</p>
+                <p className="text-base font-semibold text-gray-900">{ministryBriefTarget.minister}</p>
+              </div>
+              <div className="rounded-lg border border-gray-200 p-4">
+                <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Impact Score</p>
+                <p className="text-2xl font-bold text-blue-600">{ministryBriefTarget.impactScore}/100</p>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-3">Priority Initiatives</h3>
+              <div className="space-y-2">
+                {ministryBriefTarget.priorityInitiatives.map((initiative, idx) => (
+                  <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 border border-gray-200">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">
+                      {idx + 1}
+                    </div>
+                    <p className="text-sm text-gray-700 flex-1">{initiative}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-lg bg-amber-50 border border-amber-200 p-4">
+              <h3 className="font-semibold text-amber-900 mb-2">Cabinet Action Items</h3>
+              <ul className="space-y-1 text-sm text-amber-700 list-disc list-inside">
+                <li>Review and approve Q4 budget reallocation proposals</li>
+                <li>Fast-track regulatory approvals for flagship initiatives</li>
+                <li>Schedule bi-weekly progress reviews with Delivery Unit</li>
+              </ul>
+            </div>
+
+            <div className="flex gap-3 pt-4 border-t border-gray-200">
+              <Button 
+                variant="government" 
+                onClick={() => {
+                  const lines = [
+                    `MINISTRY BRIEF: ${ministryBriefTarget.name}`,
+                    `Leadership: ${ministryBriefTarget.minister}`,
+                    `Generated: ${new Date().toLocaleString()}`,
+                    '',
+                    '═'.repeat(60),
+                    '',
+                    'PERFORMANCE METRICS',
+                    `Budget: ${formatCurrency(ministryBriefTarget.budget)}`,
+                    `Utilisation: ${formatPercentage(ministryBriefTarget.utilisation * 100)}`,
+                    `Efficiency: ${formatPercentage(ministryBriefTarget.efficiency * 100)}`,
+                    `Flagship Projects: ${ministryBriefTarget.flagshipProjects}`,
+                    `Impact Score: ${ministryBriefTarget.impactScore}/100`,
+                    '',
+                    'PRIORITY INITIATIVES',
+                    ...ministryBriefTarget.priorityInitiatives.map((init, i) => `${i + 1}. ${init}`),
+                    '',
+                    'End of Brief'
+                  ]
+                  const content = lines.join('\n')
+                  const blob = new Blob([content], { type: 'text/plain' })
+                  const url = URL.createObjectURL(blob)
+                  const link = document.createElement('a')
+                  link.href = url
+                  link.download = `${ministryBriefTarget.id}_brief.txt`
+                  document.body.appendChild(link)
+                  link.click()
+                  link.remove()
+                  URL.revokeObjectURL(url)
+                  toast.success('Ministry brief downloaded')
+                }}
+                className="flex-1"
+              >
+                Download Brief
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => setIsMinistryBriefOpen(false)}
+                className="flex-1"
+              >
+                Close
               </Button>
             </div>
           </div>

@@ -2,33 +2,16 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
-import { Search, Loader2, ExternalLink, Sparkles } from 'lucide-react'
-import axios from 'axios'
+import { Search, Loader2, ExternalLink, Sparkles, ArrowUpRight } from 'lucide-react'
 
-import { debounce, truncateText } from '@/lib/utils'
-import { useAuth, buildApiUrl } from '@/lib/auth'
+import { debounce, truncateText, formatNumber, formatCurrency } from '@/lib/utils'
+import { useAuth } from '@/lib/auth'
 import type { SearchResult } from '@/types'
 
 interface SearchState {
   results: SearchResult[]
   isSearching: boolean
   error?: string
-}
-
-interface ApiSearchResult {
-  id: string
-  doc: {
-    appendix: string
-    parent: string
-    field: string
-    key_value: string
-    value: string | number
-  }
-}
-
-interface ApiSearchResponse {
-  total: number
-  hits: ApiSearchResult[]
 }
 
 const MIN_QUERY_LENGTH = 2
@@ -39,83 +22,143 @@ const DEMO_SEARCH_RESULTS: SearchResult[] = [
     title: 'National Infrastructure Upgrade',
     type: 'PROJECT',
     relevance: 1,
-    content: 'Modernizing road and bridge infrastructure across all provinces',
+    content: 'Modernising corridors in the Eastern province to improve export logistics and reduce travel time.',
     source: {
       id: 'projects-source',
-      name: 'Ministry of Infrastructure',
+      name: 'Ministry of Infrastructure Portfolio',
       type: 'PROJECT',
-      lastUpdated: new Date(),
+      lastUpdated: new Date('2025-09-15T07:30:00Z'),
       reliability: 95,
     },
-    metadata: {},
-    createdAt: new Date(),
+    metadata: {
+      budget: 2400000000,
+      status: 'AT RISK',
+      focus: 'Road & bridge resiliency programme',
+    },
+    createdAt: new Date('2025-07-01'),
+  },
+  {
+    id: 'proj-2',
+    title: 'Rapid Bus Transit – Kigali Smart Mobility',
+    type: 'PROJECT',
+    relevance: 0.92,
+    content: 'Deploying smart ticketing, electric buses, and dedicated lanes to ease congestion.',
+    source: {
+      id: 'mov-smart',
+      name: 'City of Kigali Delivery Unit',
+      type: 'PROJECT',
+      lastUpdated: new Date('2025-09-12T08:45:00Z'),
+      reliability: 88,
+    },
+    metadata: {
+      budget: 1650000000,
+      status: 'DELAYED',
+      focus: 'Mobility transformation',
+    },
+    createdAt: new Date('2025-05-09'),
   },
   {
     id: 'opp-1',
-    title: 'Renewable Energy Investment - Solar Parks',
+    title: 'Renewable Energy Investment – Eastern Solar Parks',
     type: 'OPPORTUNITY',
-    relevance: 1,
-    content: 'Investment opportunity in 50MW solar park development in Eastern Province',
+    relevance: 0.89,
+    content: 'RF 320B blended finance opportunity for 50MW solar and storage projects in Nyagatare.',
     source: {
       id: 'opportunities-source',
-      name: 'Rwanda Development Board',
+      name: 'Rwanda Development Board Investor Desk',
       type: 'EXTERNAL',
-      lastUpdated: new Date(),
+      lastUpdated: new Date('2025-09-10T09:10:00Z'),
       reliability: 92,
     },
-    metadata: {},
-    createdAt: new Date(),
+    metadata: {
+      sector: 'Energy',
+      value: 320000000000,
+      stage: 'Negotiation',
+    },
+    createdAt: new Date('2025-08-20'),
+  },
+  {
+    id: 'opp-2',
+    title: 'Agro-Processing Export Hub – Eastern Province',
+    type: 'OPPORTUNITY',
+    relevance: 0.84,
+    content: 'Cold chain and value-add processing hub targeting horticulture exports to the EAC bloc.',
+    source: {
+      id: 'rdb-agri',
+      name: 'Investment Facilitation Office',
+      type: 'EXTERNAL',
+      lastUpdated: new Date('2025-09-08T16:02:00Z'),
+      reliability: 90,
+    },
+    metadata: {
+      sector: 'Agriculture',
+      value: 210000000000,
+      stage: 'Investor Outreach',
+    },
+    createdAt: new Date('2025-08-06'),
   },
   {
     id: 'insight-1',
-    title: 'Budget Efficiency Analysis Q4 2024',
+    title: 'Budget Efficiency – Cabinet Brief Q3 2025',
     type: 'INSIGHT',
-    relevance: 1,
-    content: 'Analysis shows 12% improvement in budget utilization across ministries',
+    relevance: 0.82,
+    content: 'National execution reached 87.5%. Youth skilling and rural electrification absorb best.',
     source: {
       id: 'intelligence-source',
       name: 'National Intelligence Dashboard',
       type: 'STATISTICS',
-      lastUpdated: new Date(),
-      reliability: 90,
+      lastUpdated: new Date('2025-09-15T06:15:00Z'),
+      reliability: 91,
     },
-    metadata: {},
-    createdAt: new Date(),
+    metadata: {
+      highlight: 'Efficiency trending upward 3 quarters in a row',
+      drivers: ['ICT skilling', 'Precision agriculture'],
+    },
+    createdAt: new Date('2025-09-15'),
+  },
+  {
+    id: 'insight-2',
+    title: 'Youth Employment Pulse – LFS Q2 2025',
+    type: 'DATA',
+    relevance: 0.78,
+    content: 'Youth unemployment eased to 21.4%. Kigali innovation apprenticeships are outperforming baseline.',
+    source: {
+      id: 'nisr-lfs',
+      name: 'NISR Labour Force Survey',
+      type: 'STATISTICS',
+      lastUpdated: new Date('2025-07-28T12:00:00Z'),
+      reliability: 94,
+    },
+    metadata: {
+      indicator: 'Youth unemployment',
+      value: 21.4,
+      trend: 'Improving',
+    },
+    createdAt: new Date('2025-07-29'),
+  },
+  {
+    id: 'policy-1',
+    title: 'Digital Rwanda 2028 Roadmap',
+    type: 'POLICY',
+    relevance: 0.74,
+    content: 'Cabinet-approved roadmap aligning digital infrastructure, talent, and governance with Vision 2050.',
+    source: {
+      id: 'policy-room',
+      name: 'Cabinet Secretariat',
+      type: 'MINISTRY',
+      lastUpdated: new Date('2025-09-01T10:00:00Z'),
+      reliability: 89,
+    },
+    metadata: {
+      status: 'Approved',
+      owner: 'Ministry of ICT & Innovation',
+    },
+    createdAt: new Date('2025-09-01'),
   },
 ]
 
-// Function to transform API response to your SearchResult format
-const transformApiResult = (apiResult: ApiSearchResult): SearchResult => {
-  const { doc } = apiResult
-  const title = `${doc.key_value} - ${doc.field}`.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-  const content = `${doc.appendix}: ${doc.key_value} ${doc.field} is ${doc.value}`
-  
-  return {
-    id: apiResult.id,
-    title,
-    type: 'DATA', // You can map this based on your needs
-    relevance: 1,
-    content,
-    source: {
-      id: 'search-api',
-      name: 'Data Catalogue',
-      type: 'STATISTICS',
-      lastUpdated: new Date(),
-      reliability: 85,
-    },
-    metadata: {
-      appendix: doc.appendix,
-      parent: doc.parent,
-      field: doc.field,
-      key_value: doc.key_value,
-      value: doc.value
-    },
-    createdAt: new Date(),
-  }
-}
-
 export default function GlobalSearch() {
-  const { token } = useAuth()
+  const { user } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -142,49 +185,34 @@ export default function GlobalSearch() {
         setState((prev) => ({ ...prev, isSearching: true, error: undefined }))
 
         try {
-          // Use axios instead of fetch
-          const response = await axios.get<ApiSearchResponse>(
-            `http://192.168.56.1:5000/api/search?q=${encodeURIComponent(nextQuery)}`,
-            {
-              headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-              timeout: 10000, // 10 second timeout
-            }
-          )
+          await new Promise((resolve) => setTimeout(resolve, 280))
 
-          const data = response.data
+          const lowerQuery = nextQuery.toLowerCase()
+          const fallbackResults = DEMO_SEARCH_RESULTS.filter((result) => {
+            return (
+              result.title.toLowerCase().includes(lowerQuery) ||
+              result.content.toLowerCase().includes(lowerQuery) ||
+              Object.values(result.metadata ?? {}).some((value) =>
+                typeof value === 'string' ? value.toLowerCase().includes(lowerQuery) : false
+              )
+            )
+          })
 
-          if (data.hits && Array.isArray(data.hits)) {
-            // Transform API results to your application's format
-            const transformedResults = data.hits.map(transformApiResult)
-            setState({ 
-              results: transformedResults, 
-              isSearching: false,
-              error: transformedResults.length === 0 ? 'No results found' : undefined
-            })
-          } else {
-            setState({ 
-              results: [], 
-              isSearching: false, 
-              error: 'No results found' 
-            })
-          }
-        } catch (searchError) {
-          console.error('Search error:', searchError)
-          
-          // Fallback to demo results if API is unavailable
-          const fallbackResults = DEMO_SEARCH_RESULTS.filter(result => 
-            result.title.toLowerCase().includes(nextQuery.toLowerCase()) ||
-            result.content.toLowerCase().includes(nextQuery.toLowerCase())
-          )
-          
           setState({
             results: fallbackResults.length > 0 ? fallbackResults : DEMO_SEARCH_RESULTS,
             isSearching: false,
-            error: 'Showing demo results while connecting to search service...',
+            error: undefined,
+          })
+        } catch (searchError) {
+          console.error('Search error:', searchError)
+          setState({
+            results: DEMO_SEARCH_RESULTS,
+            isSearching: false,
+            error: 'Showing demo results',
           })
         }
       }, 300),
-    [token]
+    []
   )
 
   useEffect(() => {
@@ -234,23 +262,43 @@ export default function GlobalSearch() {
     }
 
     switch (result.type) {
-      case 'PROJECT':
-      //  params.set('view', 'projects')
+      case 'PROJECT': {
+        params.set('view', 'projects')
+        params.set('focus', result.id)
         break
-      case 'OPPORTUNITY':
-      //  params.set('view', 'opportunities')
+      }
+      case 'OPPORTUNITY': {
+        params.set('view', 'opportunities')
+        params.set('opportunity', result.id)
         break
+      }
       case 'INSIGHT':
-      case 'DATA':
-     //   params.set('view', 'intelligence')
+      case 'DATA': {
+        params.set('view', 'intelligence')
+        params.set('conversation', result.id)
+        window.localStorage.setItem(
+          'intelligence:pending-insight',
+          JSON.stringify({
+            id: result.id,
+            title: result.title,
+            summary: result.content,
+            drivers: result.metadata?.drivers ?? ['Budget execution', 'Opportunity velocity'],
+            recommendation: 'Share with delivery unit and schedule a cabinet check-in.',
+          })
+        )
         break
-      case 'POLICY':
-      //  params.set('view', 'intelligence')
-      //  params.set('memory', 'policy')
+      }
+      case 'POLICY': {
+        params.set('view', 'intelligence')
+        params.set('memory', 'policy')
         break
-      default:
-     //   params.set('view', 'dashboard')
+      }
+      default: {
+        params.set('view', 'dashboard')
+      }
     }
+
+    params.set('query', result.title)
 
     const nextUrl = `${pathname}?${params.toString()}`
     const currentUrl = `${pathname}?${searchParams?.toString() ?? ''}`
@@ -273,7 +321,7 @@ export default function GlobalSearch() {
             setIsOpen(true)
           }}
           onFocus={() => setIsOpen(true)}
-          placeholder="Search Rwanda's data..."
+          placeholder="Search Rwanda's intelligence..."
           className="w-full rounded-lg border border-gray-300 bg-white pl-10 pr-4 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
           aria-label="Search Rwanda's data"
         />
@@ -305,7 +353,7 @@ export default function GlobalSearch() {
           {!isSearching && !error && showHelperState && (
             <div className="flex items-start gap-2 px-4 py-3 text-sm text-gray-500">
               <Sparkles className="mt-0.5 h-4 w-4 text-blue-500" />
-              <span>Start typing to search Rwanda's datasets, statistics, and insights.</span>
+              <span>Search across cabinet briefs, NISR datasets, projects, and investment leads.</span>
             </div>
           )}
 
@@ -319,34 +367,49 @@ export default function GlobalSearch() {
                 <li key={`${result.type}-${result.id}`}>
                   <button
                     type="button"
-                    className="flex w-full items-start justify-between gap-3 px-4 py-3 text-left text-sm hover:bg-blue-50"
+                    className="flex w-full items-start justify-between gap-3 px-4 py-3 text-left text-sm transition-colors hover:bg-blue-50"
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={() => handleNavigate(result)}
                   >
                     <div className="flex-1">
-                      <p className="font-medium text-gray-900">{result.title}</p>
+                      <div className="flex items-center gap-2">
+                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-blue-700">{result.type}</span>
+                        <p className="font-medium text-gray-900">{result.title}</p>
+                      </div>
                       {result.content && (
-                        <p className="mt-1 text-xs text-gray-500">{truncateText(result.content, 110)}</p>
+                        <p className="mt-1 text-xs text-gray-600">{truncateText(result.content, 120)}</p>
                       )}
                       {result.metadata && (
-                        <div className="mt-1 text-xs text-gray-400">
-                          {result.metadata.appendice && (
-                            <div>Table: {result.metadata.appendix}</div>
+                        <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-gray-500">
+                          {'budget' in result.metadata && (
+                            <span>Budget: {formatCurrency(result.metadata.budget as number)}</span>
                           )}
-                          {result.metadata.value && (
-                            <div>Value: {result.metadata.value}</div>
+                          {'status' in result.metadata && <span>Status: {String(result.metadata.status)}</span>}
+                          {'focus' in result.metadata && <span>Focus: {String(result.metadata.focus)}</span>}
+                          {'sector' in result.metadata && <span>Sector: {String(result.metadata.sector)}</span>}
+                          {'value' in result.metadata && (
+                            <span>Value: {formatCurrency(result.metadata.value as number)}</span>
+                          )}
+                          {'stage' in result.metadata && <span>Stage: {String(result.metadata.stage)}</span>}
+                          {'indicator' in result.metadata && (
+                            <span>
+                              Indicator: {String(result.metadata.indicator)} – {formatNumber(result.metadata.value as number)}%
+                            </span>
                           )}
                         </div>
                       )}
-                      <div className="mt-2 flex items-center gap-2 text-xs text-gray-400">
-                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-gray-600">{result.type}</span>
-                        <span className="flex items-center gap-1">
-                          <ExternalLink size={12} />
-                          {result.source?.name ?? 'Data catalogue'}
-                        </span>
+                      <div className="mt-2 flex items-center gap-3 text-[11px] text-gray-400">
+                        {result.source?.name && (
+                          <span className="flex items-center gap-1">
+                            <ExternalLink size={11} />
+                            {result.source.name}
+                          </span>
+                        )}
+                        <span>Updated {result.source?.lastUpdated?.toLocaleDateString?.('en-GB') ?? 'recently'}</span>
+                        <span>{Math.round(result.relevance * 100)}% match</span>
                       </div>
                     </div>
-                    <ExternalLink size={16} className="mt-1 text-gray-400 flex-shrink-0" />
+                    <ArrowUpRight size={16} className="mt-1 text-gray-400 flex-shrink-0" />
                   </button>
                 </li>
               ))}

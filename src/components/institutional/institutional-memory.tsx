@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '@/lib/auth'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -26,6 +26,7 @@ import {
 import { DetailModal } from '@/components/ui/detail-modal'
 import { toast } from 'sonner'
 import { exportToCSV } from '@/lib/export-utils'
+import IntelligenceChat from '@/components/institutional/intelligence-chat'
 
 interface PolicyDecision {
   id: string
@@ -57,14 +58,29 @@ interface HistoricalPattern {
 }
 
 export default function InstitutionalMemory() {
-  const { user, token } = useAuth()
+  const { user } = useAuth()
   const [activeTab, setActiveTab] = useState('decisions')
   const [searchQuery, setSearchQuery] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [filteredDecisions, setFilteredDecisions] = useState<PolicyDecision[]>([])
   const [filteredPatterns, setFilteredPatterns] = useState<HistoricalPattern[]>([])
   const [selectedDecision, setSelectedDecision] = useState<PolicyDecision | null>(null)
-  const [selectedPattern, setSelectedPattern] = useState<HistoricalPattern | null>(null)
+  const [isApplyingLessons, setIsApplyingLessons] = useState(false)
+  const [activeConversationId, setActiveConversationId] = useState<string | undefined>(undefined)
+
+  const decisionOutcomeSummary = useMemo(() => {
+    if (!selectedDecision) return null
+
+    const achievedCount = selectedDecision.actualOutcomes.length
+    const plannedCount = selectedDecision.expectedOutcomes.length
+    const successRatio = plannedCount ? Math.round((achievedCount / plannedCount) * 100) : 0
+
+    return {
+      achievedCount,
+      plannedCount,
+      successRatio,
+    }
+  }, [selectedDecision])
 
   // Mock data for demonstration
   const mockPolicyDecisions: PolicyDecision[] = [
@@ -391,20 +407,40 @@ export default function InstitutionalMemory() {
             variant="government"
             className="flex items-center space-x-2"
             onClick={() => {
-              toast.success('Insight generation started', {
-                description: 'Analyzing historical patterns and lessons for your ministry.',
-              })
+              const pendingToast = toast.loading('Synthesizing intelligence threads...')
               setTimeout(() => {
-                toast.info('New insights ready', {
-                  description: 'AI summary prepared for the Intelligence team.',
+                toast.success('Insights generated', {
+                  id: pendingToast,
+                  description: 'Executive summary ready in Intelligence workspace.',
                 })
-              }, 2500)
+
+                const insightConversation = {
+                  id: `insight-${Date.now()}`,
+                  title: 'Dashboard insight bundle',
+                  summary: 'Budget execution improving while youth employment gains hold; three at-risk projects flagged.',
+                  drivers: ['Budget execution +3.2%', 'Youth apprenticeships outperform baseline', 'Infrastructure risks elevated'],
+                  recommendation: 'Prepare cabinet note aligning reallocation with apprenticeship expansion and corridor mitigation.',
+                }
+
+                window.localStorage.setItem('intelligence:pending-insight', JSON.stringify(insightConversation))
+
+                const params = new URLSearchParams(window.location.search)
+                params.set('view', 'intelligence')
+                params.set('conversation', insightConversation.id)
+                setActiveConversationId(insightConversation.id)
+                window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`)
+              }, 2800)
             }}
           >
             <Lightbulb size={16} />
             <span>Generate Insights</span>
           </Button>
         </div>
+      </div>
+
+      {/* AI Intelligence Workspace */}
+      <div className="mt-6">
+        <IntelligenceChat key={activeConversationId ?? 'intelligence-chat'} initialConversationId={activeConversationId} />
       </div>
 
       {/* Search and Navigation */}
@@ -470,7 +506,7 @@ export default function InstitutionalMemory() {
 
       {/* Content based on active tab */}
       {activeTab === 'decisions' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)] gap-6">
           {filteredDecisions.map((decision) => (
             <Card key={decision.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
@@ -487,11 +523,10 @@ export default function InstitutionalMemory() {
                   </div>
                 </div>
               </CardHeader>
-              
               <CardContent>
                 <div className="space-y-4">
                   <p className="text-sm text-gray-600">{decision.description}</p>
-                  
+
                   <div className="flex items-center space-x-4 text-sm">
                     <div className="flex items-center space-x-1">
                       <Calendar size={14} />
@@ -524,13 +559,48 @@ export default function InstitutionalMemory() {
                     <Button
                       size="sm"
                       variant="government"
-                      onClick={() =>
-                        toast.success('Lesson flagged for application', {
-                          description: `Added to action plan for ${decision.ministry}.`,
+                      disabled={isApplyingLessons}
+                      onClick={async () => {
+                        setIsApplyingLessons(true)
+                        const pendingToast = toast.loading('Preparing action plan from lessons...')
+
+                        await new Promise((resolve) => setTimeout(resolve, 1400))
+
+                        toast.success('Lessons applied to ministry action plan', {
+                          id: pendingToast,
+                          description: `${decision.ministry} delivery unit notified with tailored follow-up tasks.`,
                         })
-                      }
+
+                        try {
+                          localStorage.setItem(
+                            'intelligence:pinned-lesson',
+                            JSON.stringify({
+                              decisionId: decision.id,
+                              title: decision.title,
+                              ministry: decision.ministry,
+                              lesson: decision.lessonsLearned,
+                              successFactors: decision.successFactors,
+                              failureFactors: decision.failureFactors,
+                              generatedAt: new Date().toISOString(),
+                            })
+                          )
+                        } catch (error) {
+                          console.error('Failed to cache lesson context', error)
+                        }
+
+                        setTimeout(() => {
+                          const params = new URLSearchParams(window.location.search)
+                          params.set('view', 'intelligence')
+                          params.set('conversation', `lesson-${decision.id}`)
+                          setActiveConversationId(`lesson-${decision.id}`)
+                          window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`)
+                        }, 350)
+
+                        setIsApplyingLessons(false)
+                        setActiveConversationId(`lesson-${decision.id}`)
+                      }}
                     >
-                      Apply Lessons
+                      {isApplyingLessons ? 'Applying...' : 'Apply Lessons'}
                     </Button>
                   </div>
                 </div>
@@ -614,17 +684,53 @@ export default function InstitutionalMemory() {
                 </div>
 
                 <div className="mt-4 flex items-center justify-end gap-3">
-                  <Button variant="outline" size="sm" onClick={() => setSelectedPattern(pattern)}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const params = new URLSearchParams(window.location.search)
+                      params.set('view', 'intelligence')
+                      params.set('conversation', `pattern-${pattern.id}`)
+                      setActiveConversationId(`pattern-${pattern.id}`)
+                      window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`)
+                    }}
+                  >
                     View Details
                   </Button>
                   <Button
                     size="sm"
                     variant="government"
-                    onClick={() =>
-                      toast.success('Pattern bookmarked for analysis', {
-                        description: `Added ${pattern.patternType} to analytics queue.`,
+                    disabled={isApplyingLessons}
+                    onClick={async () => {
+                      setIsApplyingLessons(true)
+                      const pendingToast = toast.loading('Calculating pattern playbook...')
+
+                      await new Promise((resolve) => setTimeout(resolve, 1400))
+
+                      toast.success('Pattern applied to intelligence workspace', {
+                        id: pendingToast,
+                        description: `${pattern.patternType} now available in chat threads.`,
                       })
-                    }
+
+                      const conversationId = `pattern-${pattern.id}`
+                      const payload = {
+                        id: conversationId,
+                        title: `Pattern: ${pattern.patternType}`,
+                        summary: pattern.description,
+                        drivers: pattern.supportingEvidence.slice(0, 3),
+                        recommendation: 'Align delivery teams with this pattern and track next milestone readiness.',
+                      }
+
+                      window.localStorage.setItem('intelligence:pending-insight', JSON.stringify(payload))
+
+                      const params = new URLSearchParams(window.location.search)
+                      params.set('view', 'intelligence')
+                      params.set('conversation', conversationId)
+                      setActiveConversationId(conversationId)
+                      window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`)
+
+                      setIsApplyingLessons(false)
+                    }}
                   >
                     Apply Pattern
                   </Button>
@@ -636,71 +742,238 @@ export default function InstitutionalMemory() {
       )}
 
       {activeTab === 'analytics' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <BarChart3 size={20} />
-                <span>Success Rate by Category</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {[
-                  { category: 'Technology Policy', success: 75, total: 8 },
-                  { category: 'Health Policy', success: 90, total: 6 },
-                  { category: 'Environmental Policy', success: 85, total: 5 },
-                  { category: 'Education Policy', success: 60, total: 10 }
-                ].map((item) => (
-                  <div key={item.category}>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm text-gray-600">{item.category}</span>
-                      <span className="text-sm font-medium">{item.success}% ({item.total} policies)</span>
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <BarChart3 size={20} />
+                  <span>Success Rate by Category</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {[
+                    { category: 'Technology Policy', success: 75, total: 8 },
+                    { category: 'Health Policy', success: 90, total: 6 },
+                    { category: 'Environmental Policy', success: 85, total: 5 },
+                    { category: 'Education Policy', success: 60, total: 10 }
+                  ].map((item) => (
+                    <div key={item.category}>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-sm text-gray-600">{item.category}</span>
+                        <span className="text-sm font-medium">{item.success}% ({item.total} policies)</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-blue-600 h-2 rounded-full"
+                          style={{ width: `${item.success}%` }}
+                        ></div>
+                      </div>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full"
-                        style={{ width: `${item.success}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <PieChart size={20} />
-                <span>Implementation Timeline</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {[
-                  { range: 'Under 12 months', percentage: 25, count: 8 },
-                  { range: '1-2 years', percentage: 45, count: 14 },
-                  { range: '2-3 years', percentage: 20, count: 6 },
-                  { range: 'Over 3 years', percentage: 10, count: 3 }
-                ].map((item) => (
-                  <div key={item.range}>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm text-gray-600">{item.range}</span>
-                      <span className="text-sm font-medium">{item.percentage}% ({item.count} policies)</span>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <PieChart size={20} />
+                  <span>Implementation Timeline</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {[
+                    { range: 'Under 12 months', percentage: 25, count: 8 },
+                    { range: '1-2 years', percentage: 45, count: 14 },
+                    { range: '2-3 years', percentage: 20, count: 6 },
+                    { range: 'Over 3 years', percentage: 10, count: 3 }
+                  ].map((item) => (
+                    <div key={item.range}>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-sm text-gray-600">{item.range}</span>
+                        <span className="text-sm font-medium">{item.percentage}% ({item.count} policies)</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-green-600 h-2 rounded-full"
+                          style={{ width: `${item.percentage}%` }}
+                        ></div>
+                      </div>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-green-600 h-2 rounded-full"
-                        style={{ width: `${item.percentage}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
+      )}
+
+      {selectedDecision && (
+        <DetailModal
+          isOpen={!!selectedDecision}
+          onClose={() => setSelectedDecision(null)}
+          title={selectedDecision.title}
+          maxWidth="xl"
+        >
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <p className="text-xs uppercase tracking-wide text-blue-700 font-semibold">Status</p>
+                <p className="text-lg font-bold text-blue-900 mt-1 flex items-center gap-2">
+                  {selectedDecision.isSuccessful === true ? 'Successful' : selectedDecision.isSuccessful === false ? 'Needs Attention' : 'In Progress'}
+                </p>
+                <p className="text-xs text-blue-800 mt-2">
+                  {selectedDecision.isSuccessful === true
+                    ? 'Key insights ready to roll out to similar initiatives.'
+                    : selectedDecision.isSuccessful === false
+                    ? 'Flagged for escalation — align support teams immediately.'
+                    : 'Monitoring active rollout for latest updates.'}
+                </p>
+              </div>
+
+              <div className="p-4 bg-green-50 rounded-lg">
+                <p className="text-xs uppercase tracking-wide text-green-700 font-semibold">Impact Summary</p>
+                <p className="text-lg font-bold text-green-900 mt-1">{selectedDecision.ministry}</p>
+                <p className="text-xs text-green-800 mt-2">Decision maker: {selectedDecision.decisionMaker}</p>
+                <p className="text-xs text-green-800">Decision date: {selectedDecision.decisionDate}</p>
+              </div>
+
+              <div className="p-4 bg-yellow-50 rounded-lg">
+                <p className="text-xs uppercase tracking-wide text-yellow-700 font-semibold">Outcome Coverage</p>
+                <p className="text-lg font-bold text-yellow-900 mt-1">{decisionOutcomeSummary?.successRatio ?? 0}% delivery</p>
+                <p className="text-xs text-yellow-800 mt-2">
+                  {decisionOutcomeSummary?.achievedCount ?? 0} of {decisionOutcomeSummary?.plannedCount ?? 0} targeted outcomes achieved.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                  <History size={14} className="text-blue-500" />
+                  Policy Context
+                </h3>
+                <p className="text-sm text-gray-700 leading-6">{selectedDecision.description}</p>
+                <div className="mt-3 space-y-2 text-sm text-gray-600">
+                  <p className="flex items-center gap-2"><BookOpen size={14} className="text-gray-500" />Category: <span className="font-medium text-gray-900">{selectedDecision.category}</span></p>
+                  <p className="flex items-center gap-2"><Users size={14} className="text-gray-500" />Lead Ministry: <span className="font-medium text-gray-900">{selectedDecision.ministry}</span></p>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                  <TrendingUp size={14} className="text-green-500" />
+                  Rationale
+                </h3>
+                <p className="text-sm text-gray-700 leading-6">{selectedDecision.rationale}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 border-t border-gray-200 pt-4">
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <Target size={14} className="text-blue-500" />
+                  Expected Outcomes
+                </h3>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  {selectedDecision.expectedOutcomes.map((outcome) => (
+                    <li key={outcome} className="flex items-start gap-2">
+                      <span className="h-2 w-2 mt-2 rounded-full bg-blue-500" />
+                      <span>{outcome}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <TrendingDown size={14} className="text-green-500" />
+                  Actual Outcomes
+                </h3>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  {selectedDecision.actualOutcomes.map((outcome) => (
+                    <li key={outcome} className="flex items-start gap-2">
+                      <span className="h-2 w-2 mt-2 rounded-full bg-green-500" />
+                      <span>{outcome}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 border-t border-gray-200 pt-4">
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <CheckCircle size={14} className="text-green-500" />
+                  Success Factors
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {selectedDecision.successFactors.map((factor) => (
+                    <span key={factor} className="px-3 py-1 text-xs bg-green-50 text-green-700 rounded-full border border-green-200">
+                      {factor}
+                    </span>
+                  ))}
+                  {!selectedDecision.successFactors.length && (
+                    <span className="text-sm text-gray-500">No success factors captured yet.</span>
+                  )}
+                </div>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <XCircle size={14} className="text-red-500" />
+                  Challenges / Failure Factors
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {selectedDecision.failureFactors.map((factor) => (
+                    <span key={factor} className="px-3 py-1 text-xs bg-red-50 text-red-700 rounded-full border border-red-200">
+                      {factor}
+                    </span>
+                  ))}
+                  {!selectedDecision.failureFactors.length && (
+                    <span className="text-sm text-gray-500">No blockers recorded — replicate playbook as-is.</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-200 pt-4 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3 text-sm text-gray-600">
+                <Calendar size={16} className="text-gray-400" />
+                <span>Decision captured on {selectedDecision.decisionDate}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    exportToCSV([
+                      {
+                        title: selectedDecision.title,
+                        ministry: selectedDecision.ministry,
+                        decisionDate: selectedDecision.decisionDate,
+                        status: selectedDecision.isSuccessful,
+                        lessonsLearned: selectedDecision.lessonsLearned,
+                      },
+                    ], 'decision_insight')
+                    toast.success('Decision briefing exported')
+                  }}
+                >
+                  Export Briefing
+                </Button>
+                <Button
+                  variant="government"
+                  onClick={() => {
+                    toast.success('Shared with cabinet intelligence channel')
+                    setTimeout(() => setSelectedDecision(null), 200)
+                  }}
+                >
+                  Share Update
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DetailModal>
       )}
     </div>
   )

@@ -11,7 +11,8 @@
       "Bash(python:*)",
       "Bash(netstat:*)",
       "Bash(ss:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npm run dev:*)"
     ],
     "deny": [],
     "ask": []

@@ -9,7 +9,7 @@ import EntrepreneurPortal from '@/components/entrepreneur/entrepreneur-portal'
 import ProjectsOverview from '@/components/projects/projects-overview'
 import MinistriesOverview from '@/components/ministries/ministries-overview'
 import AIAssistant from '@/components/ai/ai-assistant'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 
 export default function HomePage() {
@@ -18,7 +18,6 @@ export default function HomePage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
-  const [activeView, setActiveView] = useState('dashboard')
 
   const availableViews = useMemo(() => {
     if (!user) return {}
@@ -35,7 +34,7 @@ export default function HomePage() {
       return {
         dashboard: <EntrepreneurPortal />,
         opportunities: <EntrepreneurPortal />,
-        intelligence: <IntelligenceModules />
+        intelligence: <InstitutionalMemory />
       }
     }
 
@@ -52,45 +51,24 @@ export default function HomePage() {
     return baseViews
   }, [user])
 
-  // Ensure active view remains valid for the current role
-  useEffect(() => {
-    if (!user) return
-
-    const keys = Object.keys(availableViews)
-    if (!keys.length) return
-
-    if (!keys.includes(activeView)) {
-      setActiveView(keys[0])
+  // Derive activeView from URL (URL is single source of truth)
+  const activeView = useMemo(() => {
+    const viewParam = searchParams?.get('view')
+    const availableKeys = Object.keys(availableViews)
+    
+    if (viewParam && availableKeys.includes(viewParam)) {
+      return viewParam
     }
-  }, [availableViews, activeView, user])
+    
+    return availableKeys[0] || 'dashboard'
+  }, [searchParams, availableViews])
 
-  // Sync active view with view query param on navigation changes
-  useEffect(() => {
-    if (!user) return
-
-    const keys = Object.keys(availableViews)
-    if (!keys.length) return
-
-    const viewParam = searchParams?.get('view') ?? undefined
-    if (viewParam && keys.includes(viewParam) && viewParam !== activeView) {
-      setActiveView(viewParam)
-    }
-  }, [availableViews, searchParams, user])
-
-  // Keep URL in sync when active view changes via UI interactions
-  useEffect(() => {
-    if (!user) return
-
-    const currentView = searchParams?.get('view') ?? undefined
-    if (currentView === activeView) return
-
+  // Update URL when view changes via user interaction (onViewChange callback)
+  const handleViewChange = useCallback((newView: string) => {
     const params = new URLSearchParams(searchParams?.toString() ?? '')
-    if (activeView) {
-      params.set('view', activeView)
-    }
-
+    params.set('view', newView)
     router.replace(`${pathname}?${params.toString()}`, { scroll: false })
-  }, [activeView, pathname, router, searchParams, user])
+  }, [pathname, router, searchParams])
 
   const activeContent = availableViews[activeView as keyof typeof availableViews] ?? <IntelligenceModules />
 
@@ -112,14 +90,11 @@ export default function HomePage() {
   return (
     <DashboardLayout
       activeView={activeView}
-      onViewChange={setActiveView}
+      onViewChange={handleViewChange}
       onToggleAssistant={() => setIsAIAssistantOpen((prev) => !prev)}
     >
       <div className="p-6 space-y-6">
         {activeContent}
-        {user.role !== 'ENTREPRENEUR' && user.role !== 'INVESTOR' && (
-          <InstitutionalMemory />
-        )}
       </div>
 
       <AIAssistant
