@@ -12,13 +12,16 @@
 
 ---
 
-## 🎥 Demo Video
+## 🎥 Demo Videos
 
-**Watch the full platform demonstration:**
+**🎬 3-Minute Demo (Recommended):**
 
-[![Rwanda Government Intelligence Platform Demo](https://img.shields.io/badge/▶️%20Watch-Demo%20Video-red?style=for-the-badge&logo=youtube)](https://youtu.be/GDLFTOr-2iw)
+[![Rwanda Government Intelligence Platform - Quick Demo](https://img.shields.io/badge/▶️%20Watch-3%20Min%20Demo-red?style=for-the-badge&logo=youtube)](https://youtu.be/jtQ6K0LaDls)
 
-**🔗 Direct Link:** https://youtu.be/GDLFTOr-2iw
+**🔗 Direct Link:** https://youtu.be/jtQ6K0LaDls
+
+**📺 13-Minute In-Depth Demo:**  
+For a comprehensive walkthrough with detailed explanations of all features and NISR data integration: https://youtu.be/GDLFTOr-2iw
 
 ---
 
@@ -277,7 +280,7 @@ Real-time Dashboard + AI Chat Citations → Export & Briefing Generation
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/YOUR_USERNAME/rwanda-gov-intelligence.git
+git clone https://github.com/ChristianTonny/rgi.git
 cd rwanda-gov-intelligence
 ```
 
@@ -477,13 +480,19 @@ rwanda-gov-intelligence/
 
 **Competition:** NISR 2025 Big Data Hackathon  
 **Track:** Track 5 - Open Innovation (Mobile/Web-Based Data Solutions)  
+**Team Name:** SPCS SUITE  
 **Submission Date:** December 2025  
 **Platform Type:** Full-stack web application with mobile-responsive design  
 
+### Team Members:
+- **Christian Tonny** - Lead Developer & Platform Architect
+- **Niyigaba Jean Remy** - Data Integration & Backend Developer
+
 ### Project Links:
-- **📹 Demo Video:** https://youtu.be/GDLFTOr-2iw
-- **💻 GitHub Repository:** https://github.com/YOUR_USERNAME/rwanda-gov-intelligence *(Update with your repo)*
-- **🌐 Live Demo:** https://rwanda-gov-intelligence.vercel.app *(Update when deployed)*
+- **📹 Demo Video (3 min):** https://youtu.be/jtQ6K0LaDls
+- **📹 In-Depth Demo (13 min):** https://youtu.be/GDLFTOr-2iw
+- **💻 GitHub Repository:** https://github.com/ChristianTonny/rgi
+- **🌐 Live Demo:** https://rwanda-gov-intelligence.vercel.app
 
 ---
 
@@ -493,10 +502,10 @@ rwanda-gov-intelligence/
 - **Email:** competition@statistics.gov.rw
 - **Phone:** +250 786 872 057
 
-**Platform Inquiries:**
-- **Technical Questions:** Submit via GitHub Issues
-- **Partnership Inquiries:** [Your Email]
-- **Ministry Onboarding:** [Your Contact]
+**SPCS SUITE Team Contact:**
+- **Technical Questions:** Submit via [GitHub Issues](https://github.com/ChristianTonny/rgi/issues)
+- **Partnership Inquiries:** Christian Tonny (Lead Developer)
+- **Ministry Onboarding & Demo Requests:** Contact via GitHub or project repository
 
 ---
 
@@ -597,12 +606,14 @@ This platform represents more than a hackathon submission — it's a **blueprint
 **Hackathon:** NISR 2025 Big Data Hackathon - Track 5  
 **Mission:** Make Every Government Decision Evidence-Based  
 
-### 📹 [Watch Demo Video](https://youtu.be/GDLFTOr-2iw) | 💻 [View Code](https://github.com/YOUR_USERNAME/rwanda-gov-intelligence) | 🌐 [Try Live Demo](#)
+### 📹 [Watch 3-Min Demo](https://youtu.be/jtQ6K0LaDls) | 💻 [View Code](https://github.com/ChristianTonny/rgi) | 🌐 [Try Live Demo](https://rwanda-gov-intelligence.vercel.app)
 
 ---
 
 **🇷🇼 Transforming National Statistics into Instant Government Intelligence 🇷🇼**
 
-*Built with conviction for Rwanda's data-driven future.*
+*Built with conviction for Rwanda's data-driven future by Team SPCS SUITE*
+
+**Team:** Christian Tonny & Niyigaba Jean Remy
 
 </div>
