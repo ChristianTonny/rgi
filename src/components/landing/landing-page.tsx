@@ -368,17 +368,30 @@ export function LandingPage() {
             Watch how leaders transform from scattered spreadsheets to instant enterprise intelligence in real-time.
           </p>
 
-          {/* Video Placeholder */}
-          <div className="aspect-video border-2 border-black dark:border-white bg-gray-200 dark:bg-gray-800 flex items-center justify-center mb-8">
-            <div className="text-center">
-              <FileText className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-              <p className="font-mono text-sm text-gray-600 dark:text-gray-400">
-                [Demo video will be embedded here]
-              </p>
-              <p className="font-mono text-xs text-gray-500 dark:text-gray-500 mt-2">
-                YouTube embed after recording
-              </p>
-            </div>
+          {/* YouTube Video Embed */}
+          <div className="aspect-video border-2 border-black dark:border-white bg-black overflow-hidden mb-8">
+            <iframe
+              width="100%"
+              height="100%"
+              src="https://www.youtube.com/embed/GDLFTOr-2iw"
+              title="Rwanda Government Intelligence Platform - NISR 2025 Hackathon Demo"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              className="w-full h-full"
+            ></iframe>
+          </div>
+          
+          {/* Video Link */}
+          <div className="mb-8">
+            <a
+              href="https://youtu.be/GDLFTOr-2iw"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-3 border-2 border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all font-mono text-sm"
+            >
+              🔗 WATCH ON YOUTUBE <ArrowRight className="h-4 w-4" />
+            </a>
           </div>
 
           <Button
