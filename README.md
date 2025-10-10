@@ -280,7 +280,7 @@ Real-time Dashboard + AI Chat Citations → Export & Briefing Generation
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/YOUR_USERNAME/rwanda-gov-intelligence.git
+git clone https://github.com/ChristianTonny/rgi.git
 cd rwanda-gov-intelligence
 ```
 
@@ -480,8 +480,13 @@ rwanda-gov-intelligence/
 
 **Competition:** NISR 2025 Big Data Hackathon  
 **Track:** Track 5 - Open Innovation (Mobile/Web-Based Data Solutions)  
+**Team Name:** SPCS SUITE  
 **Submission Date:** December 2025  
 **Platform Type:** Full-stack web application with mobile-responsive design  
+
+### Team Members:
+- **Christian Tonny** - Lead Developer & Platform Architect
+- **Niyigaba Jean Remy** - Data Integration & Backend Developer
 
 ### Project Links:
 - **📹 Demo Video (3 min):** https://youtu.be/jtQ6K0LaDls
@@ -497,10 +502,10 @@ rwanda-gov-intelligence/
 - **Email:** competition@statistics.gov.rw
 - **Phone:** +250 786 872 057
 
-**Platform Inquiries:**
-- **Technical Questions:** Submit via GitHub Issues
-- **Partnership Inquiries:** [Your Email]
-- **Ministry Onboarding:** [Your Contact]
+**SPCS SUITE Team Contact:**
+- **Technical Questions:** Submit via [GitHub Issues](https://github.com/ChristianTonny/rgi/issues)
+- **Partnership Inquiries:** Christian Tonny (Lead Developer)
+- **Ministry Onboarding & Demo Requests:** Contact via GitHub or project repository
 
 ---
 
@@ -607,6 +612,8 @@ This platform represents more than a hackathon submission — it's a **blueprint
 
 **🇷🇼 Transforming National Statistics into Instant Government Intelligence 🇷🇼**
 
-*Built with conviction for Rwanda's data-driven future.*
+*Built with conviction for Rwanda's data-driven future by Team SPCS SUITE*
+
+**Team:** Christian Tonny & Niyigaba Jean Remy
 
 </div>
