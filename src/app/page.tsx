@@ -9,10 +9,10 @@ import EntrepreneurPortal from '@/components/entrepreneur/entrepreneur-portal'
 import ProjectsOverview from '@/components/projects/projects-overview'
 import MinistriesOverview from '@/components/ministries/ministries-overview'
 import AIAssistant from '@/components/ai/ai-assistant'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState, Suspense } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 
-export default function HomePage() {
+function DashboardContent() {
   const { user, isLoading } = useAuth()
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false)
   const searchParams = useSearchParams()
@@ -102,5 +102,20 @@ export default function HomePage() {
         onClose={() => setIsAIAssistantOpen(false)}
       />
     </DashboardLayout>
+  )
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading Rwanda Government Intelligence...</p>
+        </div>
+      </div>
+    }>
+      <DashboardContent />
+    </Suspense>
   )
 }
