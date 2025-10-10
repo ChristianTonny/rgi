@@ -482,8 +482,8 @@ rwanda-gov-intelligence/
 
 ### Project Links:
 - **📹 Demo Video:** https://youtu.be/GDLFTOr-2iw
-- **💻 GitHub Repository:** https://github.com/YOUR_USERNAME/rwanda-gov-intelligence *(Update with your repo)*
-- **🌐 Live Demo:** https://rwanda-gov-intelligence.vercel.app *(Update when deployed)*
+- **💻 GitHub Repository:** https://github.com/ChristianTonny/rgi
+- **🌐 Live Demo:** https://rwanda-gov-intelligence.vercel.app
 
 ---
 
@@ -597,7 +597,7 @@ This platform represents more than a hackathon submission — it's a **blueprint
 **Hackathon:** NISR 2025 Big Data Hackathon - Track 5  
 **Mission:** Make Every Government Decision Evidence-Based  
 
-### 📹 [Watch Demo Video](https://youtu.be/GDLFTOr-2iw) | 💻 [View Code](https://github.com/YOUR_USERNAME/rwanda-gov-intelligence) | 🌐 [Try Live Demo](#)
+### 📹 [Watch Demo Video](https://youtu.be/GDLFTOr-2iw) | 💻 [View Code](https://github.com/ChristianTonny/rgi) | 🌐 [Try Live Demo](https://rwanda-gov-intelligence.vercel.app)
 
 ---
 
