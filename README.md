@@ -12,13 +12,16 @@
 
 ---
 
-## 🎥 Demo Video
+## 🎥 Demo Videos
 
-**Watch the full platform demonstration:**
+**🎬 3-Minute Demo (Recommended):**
 
-[![Rwanda Government Intelligence Platform Demo](https://img.shields.io/badge/▶️%20Watch-Demo%20Video-red?style=for-the-badge&logo=youtube)](https://youtu.be/GDLFTOr-2iw)
+[![Rwanda Government Intelligence Platform - Quick Demo](https://img.shields.io/badge/▶️%20Watch-3%20Min%20Demo-red?style=for-the-badge&logo=youtube)](https://youtu.be/jtQ6K0LaDls)
 
-**🔗 Direct Link:** https://youtu.be/GDLFTOr-2iw
+**🔗 Direct Link:** https://youtu.be/jtQ6K0LaDls
+
+**📺 13-Minute In-Depth Demo:**  
+For a comprehensive walkthrough with detailed explanations of all features and NISR data integration: https://youtu.be/GDLFTOr-2iw
 
 ---
 
@@ -481,7 +484,8 @@ rwanda-gov-intelligence/
 **Platform Type:** Full-stack web application with mobile-responsive design  
 
 ### Project Links:
-- **📹 Demo Video:** https://youtu.be/GDLFTOr-2iw
+- **📹 Demo Video (3 min):** https://youtu.be/jtQ6K0LaDls
+- **📹 In-Depth Demo (13 min):** https://youtu.be/GDLFTOr-2iw
 - **💻 GitHub Repository:** https://github.com/ChristianTonny/rgi
 - **🌐 Live Demo:** https://rwanda-gov-intelligence.vercel.app
 
@@ -597,7 +601,7 @@ This platform represents more than a hackathon submission — it's a **blueprint
 **Hackathon:** NISR 2025 Big Data Hackathon - Track 5  
 **Mission:** Make Every Government Decision Evidence-Based  
 
-### 📹 [Watch Demo Video](https://youtu.be/GDLFTOr-2iw) | 💻 [View Code](https://github.com/ChristianTonny/rgi) | 🌐 [Try Live Demo](https://rwanda-gov-intelligence.vercel.app)
+### 📹 [Watch 3-Min Demo](https://youtu.be/jtQ6K0LaDls) | 💻 [View Code](https://github.com/ChristianTonny/rgi) | 🌐 [Try Live Demo](https://rwanda-gov-intelligence.vercel.app)
 
 ---
 

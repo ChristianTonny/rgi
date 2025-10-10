@@ -368,13 +368,13 @@ export function LandingPage() {
             Watch how leaders transform from scattered spreadsheets to instant enterprise intelligence in real-time.
           </p>
 
-          {/* YouTube Video Embed */}
+          {/* YouTube Video Embed - 3 Minute Demo */}
           <div className="aspect-video border-2 border-black dark:border-white bg-black overflow-hidden mb-8">
             <iframe
               width="100%"
               height="100%"
-              src="https://www.youtube.com/embed/GDLFTOr-2iw"
-              title="Rwanda Government Intelligence Platform - NISR 2025 Hackathon Demo"
+              src="https://www.youtube.com/embed/jtQ6K0LaDls"
+              title="Rwanda Government Intelligence Platform - 3 Minute Demo"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
@@ -382,15 +382,23 @@ export function LandingPage() {
             ></iframe>
           </div>
           
-          {/* Video Link */}
-          <div className="mb-8">
+          {/* Video Links */}
+          <div className="mb-8 flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="https://youtu.be/GDLFTOr-2iw"
+              href="https://youtu.be/jtQ6K0LaDls"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-6 py-3 border-2 border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all font-mono text-sm"
             >
-              🔗 WATCH ON YOUTUBE <ArrowRight className="h-4 w-4" />
+              🎬 3-MIN DEMO (QUICK) <ArrowRight className="h-4 w-4" />
+            </a>
+            <a
+              href="https://youtu.be/GDLFTOr-2iw"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-3 border-2 border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all font-mono text-sm opacity-75 hover:opacity-100"
+            >
+              📺 13-MIN DEMO (IN-DEPTH) <ArrowRight className="h-4 w-4" />
             </a>
           </div>
 
