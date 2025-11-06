@@ -8,13 +8,18 @@
  * @module
  */
 
+import type * as aiHelpers from "../aiHelpers.js";
+import type * as getDashboardModules from "../getDashboardModules.js";
+import type * as nisrData from "../nisrData.js";
+import type * as queries from "../queries.js";
+import type * as searchFederated from "../searchFederated.js";
+import type * as seed from "../seed.js";
+
 import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
 } from "convex/server";
-import type * as getDashboardModules from "../getDashboardModules.js";
-import type * as searchFederated from "../searchFederated.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -25,14 +30,22 @@ import type * as searchFederated from "../searchFederated.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  aiHelpers: typeof aiHelpers;
   getDashboardModules: typeof getDashboardModules;
+  nisrData: typeof nisrData;
+  queries: typeof queries;
   searchFederated: typeof searchFederated;
+  seed: typeof seed;
 }>;
+declare const fullApiWithMounts: typeof fullApi;
+
 export declare const api: FilterApi<
-  typeof fullApi,
+  typeof fullApiWithMounts,
   FunctionReference<any, "public">
 >;
 export declare const internal: FilterApi<
-  typeof fullApi,
+  typeof fullApiWithMounts,
   FunctionReference<any, "internal">
 >;
+
+export declare const components: {};

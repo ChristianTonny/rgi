@@ -17,7 +17,7 @@ import {
   Shield,
   Menu
 } from 'lucide-react'
-import GlobalSearch from './global-search'
+import { GlobalSearch } from './global-search'
 
 interface DashboardLayoutProps {
   children: React.ReactNode

@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { api } from "./_generated/api";
 
 // NISR Poverty Data Queries
 export const getPovertyData = query({
@@ -227,7 +228,15 @@ export const seedDemographicsData = mutation({
 // Seed all NISR data
 export const seedAllNISRData = mutation({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<{
+    message: string;
+    results: {
+      poverty: any;
+      labor: any;
+      gdp: any;
+      demographics: any;
+    };
+  }> => {
     const results = {
       poverty: await ctx.runMutation(api.nisrData.seedPovertyData, {}),
       labor: await ctx.runMutation(api.nisrData.seedLaborData, {}),
@@ -241,6 +250,3 @@ export const seedAllNISRData = mutation({
     };
   },
 });
-
-// Import api
-import { api } from "./_generated/api";
