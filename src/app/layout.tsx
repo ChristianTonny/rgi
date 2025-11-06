@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { AuthProvider } from "@/lib/auth";
+import { ConvexProvider } from "@/lib/convex-provider";
 import { Toaster } from "sonner";
 import "./globals.css";
 
@@ -27,10 +28,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <AuthProvider>
-          <Toaster position="top-right" richColors />
-          {children}
-        </AuthProvider>
+        <ConvexProvider>
+          <AuthProvider>
+            <Toaster position="top-right" richColors />
+            {children}
+          </AuthProvider>
+        </ConvexProvider>
       </body>
     </html>
   );

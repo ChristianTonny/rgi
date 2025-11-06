@@ -55,5 +55,42 @@ export default defineSchema({
     context: v.optional(v.any()),
     createdAt: v.number(),
   }).index("by_user", ["userId"]).index("by_createdAt", ["createdAt"]),
+
+  // NISR Data tables
+  nisr_poverty: defineTable({
+    province: v.string(),
+    district: v.string(),
+    povertyRate: v.number(),
+    extremePovertyRate: v.number(),
+    year: v.string(),
+    source: v.string(),
+  }).index("by_province", ["province"]).index("by_district", ["district"]),
+
+  nisr_labor: defineTable({
+    province: v.string(),
+    employmentRate: v.number(),
+    unemploymentRate: v.number(),
+    youthUnemployment: v.number(),
+    sector: v.string(),
+    year: v.string(),
+    source: v.string(),
+  }).index("by_province", ["province"]),
+
+  nisr_gdp: defineTable({
+    sector: v.string(),
+    gdpContribution: v.number(),
+    growthRate: v.number(),
+    year: v.string(),
+    quarter: v.string(),
+    source: v.string(),
+  }).index("by_sector", ["sector"]),
+
+  nisr_demographics: defineTable({
+    province: v.string(),
+    district: v.string(),
+    population: v.number(),
+    year: v.string(),
+    source: v.string(),
+  }).index("by_province", ["province"]).index("by_district", ["district"]),
 });
 
