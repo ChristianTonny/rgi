@@ -1,0 +1,23 @@
+Table 49: Number of cattle that were reared by agricultural households on the day of the interview, by breeds, sex age and province
+Breed type,Gender,Age category,Kigali,South,West,North,East,Rwanda
+Exotic cattle,Male,Calves (<=12 months),431,2164,7514,1981,3741,15831
+Exotic cattle,Male,Steers (13-24 months),173,75,2049,264,1244,3805
+Exotic cattle,Male,Bulls (Above 24 months),51,19,465,226,46,807
+Exotic cattle,Female,Calves (<=12 months),1506,1985,8766,6239,4581,23077
+Exotic cattle,Female,Heifers (13-24 months),1226,2640,5773,3637,3320,16596
+Exotic cattle,Female,Cows (Above 24 months),2338,6005,18445,8037,11998,46823
+Cross cattle,Male,Calves (<=12 months),3102,46523,39921,49953,34636,174134
+Cross cattle,Male,Steers (13-24 months),437,7108,11729,16947,11079,47300
+Cross cattle,Male,Bulls (Above 24 months),98,3490,3135,2826,3020,12569
+Cross cattle,Female,Calves (<=12 months),3315,55216,41494,42531,40771,183327
+Cross cattle,Female,Heifers (13-24 months),4794,47261,25563,38147,42331,158097
+Cross cattle,Female,Cows (Above 24 months),9082,108979,78898,94730,99121,390810
+Local cattle,Male,Calves (<=12 months),1710,30752,25614,16228,16928,91233
+Local cattle,Male,Steers (13-24 months),264,6860,8553,6116,6957,28750
+Local cattle,Male,Bulls (Above 24 months),108,650,1772,1553,1508,5590
+Local cattle,Female,Calves (<=12 months),1717,37711,19838,12767,23998,96031
+Local cattle,Female,Heifers (13-24 months),1135,34140,18556,10726,24778,89334
+Local cattle,Female,Cows (Above 24 months),4308,72570,48382,30458,68667,224384
+All breeds,Male,,6373,97640,100752,96094,79160,380020
+All breeds,Female,,29421,366507,265715,247271,319565,1228479
+Source,,,,,,,,,NISR, AHS 2020
