@@ -4,9 +4,22 @@ const { GoogleGenAI } = require('@google/genai')
 
 const router = express.Router()
 
-// Initialize Google GenAI SDK (backend-only). The client reads GEMINI_API_KEY/GOOGLE_AI_API_KEY automatically, but we pass explicitly.
-const genAI = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_KEY })
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash'
+let genAIClient = null
+
+function getApiKey() {
+  // Support legacy and current env names used across local setups.
+  return process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY
+}
+
+function getGenAIClient() {
+  if (genAIClient) return genAIClient
+  const apiKey = getApiKey()
+  if (!apiKey) return null
+
+  genAIClient = new GoogleGenAI({ apiKey })
+  return genAIClient
+}
 
 const { hasNISRData, getDashboardStats } = require('../utils/nisr-loader');
 
@@ -123,12 +136,13 @@ router.post('/chat', authenticateToken, async (req, res) => {
   }
 
   try {
-    if (!process.env.GOOGLE_AI_API_KEY) {
-      console.error('Gemini chat error: Missing GOOGLE_AI_API_KEY')
+    const apiKey = getApiKey()
+    if (!apiKey) {
+      console.error('Gemini chat error: Missing API key (GOOGLE_AI_API_KEY/GEMINI_API_KEY/GOOGLE_API_KEY)')
       return res.status(503).json({
         success: false,
         message: "I'm having trouble connecting. Please try again.",
-        ...(process.env.NODE_ENV !== 'production' ? { reason: 'Missing GOOGLE_AI_API_KEY' } : {}),
+        ...(process.env.NODE_ENV !== 'production' ? { reason: 'Missing Gemini API key env var' } : {}),
       })
     }
 
@@ -138,6 +152,16 @@ router.post('/chat', authenticateToken, async (req, res) => {
         success: false,
         message: "I'm having trouble connecting. Please try again.",
         ...(process.env.NODE_ENV !== 'production' ? { reason: 'Missing GEMINI_MODEL' } : {}),
+      })
+    }
+
+    const genAI = getGenAIClient()
+    if (!genAI) {
+      console.error('Gemini chat error: Failed to initialize GoogleGenAI client')
+      return res.status(503).json({
+        success: false,
+        message: "I'm having trouble connecting. Please try again.",
+        ...(process.env.NODE_ENV !== 'production' ? { reason: 'Failed to initialize Gemini client' } : {}),
       })
     }
 
